@@ -1,0 +1,19 @@
+#pragma once
+//
+// Created by islam on 13.05.17.
+//
+
+
+#include "module_view.h"
+
+
+namespace mosaic {
+    class module_context {
+    public:
+        virtual module_view & get(const std::string_view & name) = 0;
+
+        virtual ~module_context() {};
+    };
+}
+
+
