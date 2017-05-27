@@ -6,7 +6,7 @@
 
 
 int main() {
-    mosaic::node application("../");
+    mosaic::node application("../node");
     application.link();
     application.unload();
 }
