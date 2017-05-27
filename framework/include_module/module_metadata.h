@@ -4,22 +4,12 @@
 
 #pragma once
 
-#include <string>
+#include "type_metadata.h"
+#include "function_metadata.h"
+
 #include <vector>
 
 namespace mosaic {
-    struct type_metadata {
-        std::string name;
-        std::size_t size;
-    };
-
-    struct function_metadata {
-        void * pointer;
-        std::string name;
-        std::vector<type_metadata> arguments;
-        type_metadata return_type;
-    };
-
     struct module_version {
         uint16_t major;
         uint16_t minor;

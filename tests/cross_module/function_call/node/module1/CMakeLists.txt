@@ -7,6 +7,4 @@ include_directories(${MOSAIC_ROOT}/framework/include_module)
 
 add_library(module1 MODULE ${SOURCE_FILES})
 
-target_link_libraries(module1 dyncall_s)
-
 SET_TARGET_PROPERTIES(module1 PROPERTIES PREFIX "")

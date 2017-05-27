@@ -7,4 +7,4 @@ include_directories(include include_module ../platform_abstraction/include ../co
 
 add_library(mosaic_framework SHARED ${SOURCE_FILES} ${HEADER_FILES})
 
-target_link_libraries(mosaic_framework platform_abstraction boost_system boost_filesystem)
+target_link_libraries(mosaic_framework platform_abstraction dyncall_s boost_system boost_filesystem)

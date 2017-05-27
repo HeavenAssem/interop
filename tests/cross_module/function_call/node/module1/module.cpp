@@ -6,8 +6,8 @@
 #include <iostream>
 
 
-void hello_world(int n) {
-    std::cout << "hello_world invoked! arg is: " << n << std::endl;
+void hello_world(int n, float k) {
+    std::cout << "hello_world invoked! n is: " << n << "; k is:" << k << std::endl;
 }
 
 namespace mosaic {

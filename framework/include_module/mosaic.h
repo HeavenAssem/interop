@@ -8,6 +8,8 @@
 
 #include "definitions.h"
 
+#include <exceptions.h>
+
 namespace mosaic {
     extern "C" {
         module_metadata _mosaic_module_metadata {};
@@ -21,7 +23,7 @@ namespace mosaic {
         template<class T>
         type_metadata describe_type() {
             return type_metadata {
-                .name = typeid(T).name(),
+                .type = enumerate_type<T>(),
                 .size = sizeof(T)
             };
         }
@@ -29,7 +31,7 @@ namespace mosaic {
         template<>
         type_metadata describe_type<void>() {
             return type_metadata {
-                .name = typeid(void).name(),
+                .type = enumerate_type<void>(),
                 .size = 0
             };
         }

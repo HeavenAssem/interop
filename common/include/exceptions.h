@@ -21,6 +21,11 @@ namespace mosaic {
         void append(const std::string_view& message);
     };
 
+    class function_call_error: public error {
+    public:
+        explicit function_call_error(const std::string_view& what);
+    };
+
     class lookup_error: public error {
     public:
         explicit lookup_error(const std::string_view& what);
