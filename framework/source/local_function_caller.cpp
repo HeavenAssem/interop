@@ -88,9 +88,57 @@ namespace mosaic {
         }
     }
 
-    void local_function_caller::call() {
-        argument_index = 0;
-        dcCallVoid(static_cast<DCCallVM *>(vm), metadata->pointer);
-        dcReset(static_cast<DCCallVM *>(vm));
+    template <class Fn>
+    auto call(Fn call_function, uint8_t & index, void * vm, void * pointer) {
+        index = 0;
+        if constexpr (std::is_same<decltype(call_function(static_cast<DCCallVM *>(vm), pointer)), void>::value) {
+            call_function(static_cast<DCCallVM *>(vm), pointer);
+            dcReset(static_cast<DCCallVM *>(vm));
+        }
+        else {
+            auto return_value = call_function(static_cast<DCCallVM *>(vm), pointer);
+            dcReset(static_cast<DCCallVM *>(vm));
+            return return_value;
+        }
+    }
+
+    double local_function_caller::call_double() {
+        return call(dcCallInt, argument_index, vm, metadata->pointer);
+    }
+
+    int local_function_caller::call_int() {
+        return call(dcCallInt, argument_index, vm, metadata->pointer);
+    }
+
+    bool local_function_caller::call_bool() {
+        return call(dcCallBool, argument_index, vm, metadata->pointer);
+    }
+
+    char local_function_caller::call_char() {
+        return call(dcCallChar, argument_index, vm, metadata->pointer);
+    }
+
+    float local_function_caller::call_float() {
+        return call(dcCallFloat, argument_index, vm, metadata->pointer);
+    }
+
+    long local_function_caller::call_long() {
+        return call(dcCallLong, argument_index, vm, metadata->pointer);
+    }
+
+    long long local_function_caller::call_long_long() {
+        return call(dcCallLongLong, argument_index, vm, metadata->pointer);
+    }
+
+    void * local_function_caller::call_ptr() {
+        return call(dcCallPointer, argument_index, vm, metadata->pointer);
+    }
+
+    short local_function_caller::call_short() {
+        return call(dcCallShort, argument_index, vm, metadata->pointer);
+    }
+
+    void local_function_caller::call_void() {
+        return call(dcCallVoid, argument_index, vm, metadata->pointer);
     }
 }

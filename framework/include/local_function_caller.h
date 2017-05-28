@@ -34,7 +34,25 @@ namespace mosaic {
 
         void push_arg(short arg) override;
 
-        void call() override;
+        void call_void() override;
+
+        double call_double() override;
+
+        int call_int() override;
+
+        bool call_bool() override;
+
+        char call_char() override;
+
+        float call_float() override;
+
+        long call_long() override;
+
+        long long call_long_long() override;
+
+        void * call_ptr() override;
+
+        short call_short() override;
 
         local_function_caller(const function_metadata * metadata);
 

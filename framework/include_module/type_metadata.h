@@ -32,7 +32,9 @@ namespace mosaic {
 
     template <typename T>
     constexpr type_enum enumerate_type() {
-        return detail::map_enum<typename std::decay<T>::type>::type;
+        constexpr auto type = detail::map_enum<typename std::decay<T>::type>::type;
+        static_assert(type != type_enum::TE_UNSUPPORTED, "Unsupported type");
+        return type;
     }
 
     struct type_metadata {
