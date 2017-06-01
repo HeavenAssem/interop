@@ -57,6 +57,16 @@ namespace mosaic {
         }
         _mosaic_module_metadata.functions.push_back(metadata);
     }
+
+    template <typename T, T> struct proxy;
+
+    template <typename R, typename C, typename ...Args, R (C::*function)(Args...)>
+    struct proxy<R (C::*)(Args...), function> {
+        static R call(C * obj, Args &&... args) {
+            return (obj->*function)(std::forward<Args>(args)...);
+        }
+    };
 }
 
+#define REGISTER_MEMBER(name, fn) register_function(name, proxy<decltype(fn), fn>::call);
 #define REGISTER_FUNCTION(fn) mosaic::register_function(#fn, fn);

@@ -18,10 +18,18 @@ const char * say_hello() {
     return "say hello yourself!";
 }
 
+class test {
+public:
+    void member_fn() {
+        return;
+    }
+};
+
 namespace mosaic {
     void _mosaic_module_register() {
         REGISTER_FUNCTION(hello_world)
         REGISTER_FUNCTION(add)
         REGISTER_FUNCTION(say_hello)
+        REGISTER_MEMBER("member", &test::member_fn)
     }
 }
