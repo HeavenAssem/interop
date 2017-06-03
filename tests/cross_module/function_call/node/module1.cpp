@@ -6,8 +6,8 @@
 #include <iostream>
 
 
-void hello_world(int n, float k) {
-    std::cout << "hello_world invoked! n is: " << n << "; k is:" << k << std::endl;
+void hello_world(int n, float k, double a) {
+    std::cout << "hello_world invoked! n is: " << n << "; k is: " << k << " a is: " << a << std::endl;
 }
 
 int add(int a, int b) {

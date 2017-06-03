@@ -63,7 +63,7 @@ namespace mosaic {
         }
     }
 
-    function_view & module::function(const std::string_view & name) const {
+    function_ptr module::function(const std::string_view & name) const {
         auto function_iterator = used_functions.find(name.to_string());
         if (function_iterator == used_functions.end()) {
             auto it = find_if(metadata.functions.begin(), metadata.functions.end(), [&](const function_metadata & fn_metadata){
@@ -72,7 +72,8 @@ namespace mosaic {
             if (it == metadata.functions.end()) {
                 throw function_lookup_error("function with name \"" + name.to_string() + "\" not found in module " + metadata.name);
             }
-            return used_functions[name.to_string()] = function_view(make_unique<local_function_caller>(&*it));
+
+            return used_functions[name.to_string()] = make_shared<function_view>(&*it);
         }
 
         return function_iterator->second;

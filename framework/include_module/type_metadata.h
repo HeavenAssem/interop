@@ -37,6 +37,22 @@ namespace mosaic {
         return type;
     }
 
+    inline std::string to_string(type_enum type) {
+        switch (type) {
+            case type_enum::TE_UNSUPPORTED:     return "<unsupported>";
+            case type_enum::TE_VOID:            return "void";
+            case type_enum::TE_BOOL:            return "bool";
+            case type_enum::TE_CHAR:            return "char";
+            case type_enum::TE_SHORT:           return "short";
+            case type_enum::TE_FLOAT:           return "float";
+            case type_enum::TE_DOUBLE:          return "double";
+            case type_enum::TE_INT:             return "int";
+            case type_enum::TE_LONG:            return "long";
+            case type_enum::TE_LONG_LONG:       return "long long";
+            case type_enum::TE_POINTER:         return "pointer";
+        }
+    }
+
     struct type_metadata {
         type_enum type;
         std::size_t size;
