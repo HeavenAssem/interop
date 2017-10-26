@@ -5,7 +5,7 @@
 #pragma once
 
 #include "type_metadata.h"
-#include "function_metadata.h"
+#include "object_metadata.h"
 
 #include <vector>
 
@@ -24,6 +24,7 @@ namespace mosaic {
         std::string name;
         module_version version;
         std::vector<function_metadata> functions;
+        std::vector<object_metadata> objects;
     };
 
 }

@@ -5,6 +5,8 @@
 
 #include "definitions.h"
 
+#include <string>
+
 
 namespace mosaic {
     /**

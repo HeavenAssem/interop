@@ -11,7 +11,7 @@
 namespace mosaic {
     enum class type_enum: uint8_t {TE_UNSUPPORTED, TE_VOID, TE_BOOL, TE_CHAR, TE_SHORT, TE_FLOAT, TE_DOUBLE, TE_INT, TE_LONG, TE_LONG_LONG, TE_POINTER};
 
-    namespace detail {
+    namespace details {
         template <typename Ty> struct map_enum { static constexpr type_enum type = type_enum::TE_UNSUPPORTED; };
         template <typename Ty> struct map_enum <Ty*> { static constexpr type_enum type = type_enum::TE_POINTER; };
 
@@ -32,7 +32,7 @@ namespace mosaic {
 
     template <typename T>
     constexpr type_enum enumerate_type() {
-        constexpr auto type = detail::map_enum<typename std::decay<T>::type>::type;
+        constexpr auto type = details::map_enum<typename std::decay<T>::type>::type;
         static_assert(type != type_enum::TE_UNSUPPORTED, "Unsupported type");
         return type;
     }
@@ -56,5 +56,10 @@ namespace mosaic {
     struct type_metadata {
         type_enum type;
         std::size_t size;
+    };
+
+    struct variable_metadata: type_metadata {
+        std::string name;
+        uint16_t shift;
     };
 }

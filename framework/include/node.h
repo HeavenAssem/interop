@@ -28,7 +28,7 @@ namespace mosaic {
         void link();
 
 
-        module_view & get(const std::string_view & name) override;
+        module_view & get(const std::string & name) override;
 
 
         virtual ~node();

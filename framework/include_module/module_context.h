@@ -10,7 +10,7 @@
 namespace mosaic {
     class module_context {
     public:
-        virtual module_view & get(const std::string_view & name) = 0;
+        virtual module_view & get(const std::string & name) = 0;
 
         virtual ~module_context() {};
     };

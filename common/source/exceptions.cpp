@@ -76,6 +76,10 @@ namespace mosaic {
 
     }
 
+    object_lookup_error::object_lookup_error(const std::string_view & what) : lookup_error(what) {
+
+    }
+
     function_call_error::function_call_error(const std::string_view & what) : error(what) {
 
     }

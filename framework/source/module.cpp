@@ -63,23 +63,27 @@ namespace mosaic {
         }
     }
 
-    function_ptr module::function(const std::string_view & name) const {
-        auto function_iterator = used_functions.find(name.to_string());
-        if (function_iterator == used_functions.end()) {
+    function_ptr module::function(const string & name) const {
+        auto used_function = used_functions[name];
+        if (!used_function) {
             auto it = find_if(metadata.functions.begin(), metadata.functions.end(), [&](const function_metadata & fn_metadata){
                 return name == fn_metadata.name;
             });
             if (it == metadata.functions.end()) {
-                throw function_lookup_error("function with name \"" + name.to_string() + "\" not found in module " + metadata.name);
+                throw function_lookup_error("function with name \"" + name + "\" not found in module " + metadata.name);
             }
 
-            return used_functions[name.to_string()] = make_shared<function_view>(&*it);
+            used_function = make_shared<function_view>(*it);
         }
 
-        return function_iterator->second;
+        return used_function;
     }
 
     void module::listen(const std::string_view & module_name, const std::function<void()> handler) {
 
+    }
+
+    const module_metadata & module::get_metadata() const {
+        return metadata;
     }
 }

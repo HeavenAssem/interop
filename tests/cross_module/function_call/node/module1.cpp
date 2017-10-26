@@ -19,9 +19,30 @@ const char * say_hello() {
 }
 
 class test {
+    int b;
 public:
-    void member_fn() {
-        return;
+    explicit test(int a): b(a) {
+        std::cout << "test object " << this << ": constructor called" << std::endl;
+    }
+
+    void member1() {
+    }
+
+    double member2(int arg) {
+        return 1.5 * arg;
+    }
+
+    double member3(float arg1, double arg2) {
+        return arg2 + arg1;
+    }
+
+    int get() {
+        std::cout << "get invoked! b is: " << b << "; object: " << this << std::endl;
+        return b;
+    }
+
+    ~test() {
+        std::cout << "test object " << this << ": destructor called" << std::endl;
     }
 };
 
@@ -30,6 +51,11 @@ namespace mosaic {
         REGISTER_FUNCTION(hello_world)
         REGISTER_FUNCTION(add)
         REGISTER_FUNCTION(say_hello)
-        REGISTER_MEMBER("member", &test::member_fn)
+        //REGISTER_MEMBER("member", &test::member_fn)
+        register_class<test, constructor<int>>("test")
+            .method<&test::member1>("member1")
+            .method<&test::member2>("member2")
+            .method<&test::member3>("member3")
+            .method<&test::get>("get");
     }
 }

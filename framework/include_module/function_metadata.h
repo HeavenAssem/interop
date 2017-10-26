@@ -10,6 +10,15 @@
 
 
 namespace mosaic {
+    struct constructor_metadata {
+        void * pointer;
+        std::vector<type_metadata> arguments;
+    };
+
+    struct destructor_metadata {
+        void * pointer;
+    };
+
     struct function_metadata {
         void * pointer;
         std::string name;

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "function_metadata.h"
+#include "object_view.h"
 
 #include <memory>
 #include <exceptions.h>
@@ -15,7 +16,6 @@ namespace mosaic {
      *           therefore, it is non - copyable.
      *           To store function_view use smart pointers.
      */
-
     class function_view {
         using metadata_checker = void(*)(const function_metadata & );
 
@@ -48,7 +48,7 @@ namespace mosaic {
             }
 
             static void check_return_type(const function_metadata & metadata) {
-                if constexpr (!std::is_same<R, void>::value) {      // Allow to discard return value (when no return type specified on call - do not perform check).
+                if constexpr (!std::is_void<R>::value) {      // Allow to discard return value (when no return type specified on call - do not perform check).
                     const auto expected_type = metadata.return_type.type;
                     const auto passed_type = enumerate_type<R>();
                     if (passed_type != expected_type) {
@@ -71,10 +71,20 @@ namespace mosaic {
         };
 
         std::vector<metadata_checker> metadata_checkers;
-        const function_metadata * metadata;
+        const function_metadata & metadata;
+        void * bound_object;
 
     public:
-        function_view(const function_metadata * metadata): metadata(metadata) {}
+        explicit function_view(const function_metadata & metadata)
+            : metadata(metadata)
+            , bound_object(nullptr)
+        {}
+
+        function_view(object_view & object, const function_metadata & metadata)
+            : metadata(metadata)
+            , bound_object(object.get_pointer())
+        {}
+
         function_view(const function_view &) = delete;
 
         /**
@@ -82,12 +92,14 @@ namespace mosaic {
          */
         template <class R = void, class ... Args>
         R call(Args ... args) {
-            static signature_checker<R, Args...> checker_instance (*metadata, metadata_checkers);   /** check call signature and register check
+            static signature_checker<R, Args...> checker_instance (metadata, metadata_checkers);   /** check call signature and register check
                                                                                                       * in case if metadata changes (on function's module reload / replace) */
-            return reinterpret_cast<R (*)(Args ...)>(metadata->pointer)(args...);
+            if (bound_object) {
+                return reinterpret_cast<R (*)(void *, Args ...)>(metadata.pointer)(bound_object, args...);
+            } else {
+                return reinterpret_cast<R (*)(Args ...)>(metadata.pointer)(args...);
+            }
         }
     };
-
-    typedef std::shared_ptr<function_view> function_ptr;
 }
 

@@ -4,11 +4,8 @@
 
 #pragma once
 
-#include <experimental/string_view>
+#include <string_view>
 
-namespace std {
-    typedef experimental::string_view string_view;
-}
 
 namespace mosaic {
     typedef void * library_handle;

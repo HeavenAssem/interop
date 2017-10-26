@@ -20,6 +20,8 @@ namespace mosaic {
         module_metadata metadata;
 
         mutable std::unordered_map<std::string, function_ptr> used_functions;
+
+        const module_metadata & get_metadata() const override;
     public:
         module(shared_library && library);
         module(const module &)  = delete;
@@ -27,7 +29,10 @@ namespace mosaic {
 
         void link(module_context & context) const;
 
-        function_ptr function(const std::string_view & name) const override;
+        function_ptr function(const std::string & name) const override;
+
+
+
 
         void listen(const std::string_view & module_name, const std::function<void()> handler) override;
 

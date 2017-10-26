@@ -7,6 +7,7 @@
 #include "definitions.h"
 
 #include <exception>
+#include <string>
 
 
 namespace mosaic {
@@ -39,6 +40,11 @@ namespace mosaic {
     class function_lookup_error: public lookup_error {
     public:
         explicit function_lookup_error(const std::string_view& what);
+    };
+
+    class object_lookup_error: public lookup_error {
+    public:
+        explicit object_lookup_error(const std::string_view& what);
     };
 
     class not_implemented: public error {

@@ -48,7 +48,7 @@ namespace mosaic {
             throw node_loading_error(string("no child modules or nodes created from path: \"") + directory.data() + "\"");
         }
 
-        mosaic_logger(log, "created node at " + directory.to_string());
+        mosaic_logger(log, "created node at " + string(directory));
     }
 
     node::node(node && other):
@@ -56,8 +56,8 @@ namespace mosaic {
     {}
 
 
-    module_view & node::get(const std::string_view & name) {
-        return *global_scope.at(name.to_string());
+    module_view & node::get(const std::string & name) {
+        return *global_scope.at(name);
     }
 
     node::~node() {
