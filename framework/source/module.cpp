@@ -39,13 +39,15 @@ namespace mosaic {
         }
     }
 
-    module::module(module && other): library(move(other.library)) {
+    module::module(module && other) noexcept
+        : library(move(other.library))
+    {
         metadata = other.metadata;
 
-        other.metadata = module_metadata();
+        other.metadata = {};
     }
 
-    module::~module() {
+    module::~module() noexcept {
 
     }
 
@@ -79,7 +81,7 @@ namespace mosaic {
         return used_function;
     }
 
-    void module::listen(const std::string_view & module_name, const std::function<void()> handler) {
+    void module::listen(const std::string_view & module_name, std::function<void()> && handler) {
 
     }
 

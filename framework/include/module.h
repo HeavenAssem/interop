@@ -23,9 +23,9 @@ namespace mosaic {
 
         const module_metadata & get_metadata() const override;
     public:
-        module(shared_library && library);
+        explicit module(shared_library && library);
         module(const module &)  = delete;
-        module(module &&);
+        module(module &&) noexcept;
 
         void link(module_context & context) const;
 
@@ -34,11 +34,11 @@ namespace mosaic {
 
 
 
-        void listen(const std::string_view & module_name, const std::function<void()> handler) override;
+        void listen(const std::string_view & module_name, std::function<void()> && handler) override;
 
         const std::string& name() const override;
 
-        ~module();
+        ~module() noexcept;
 
         void unload();
 

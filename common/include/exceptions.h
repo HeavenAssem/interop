@@ -22,6 +22,11 @@ namespace mosaic {
         void append(const std::string_view& message);
     };
 
+    class arguments_mismatch_error: public error {
+    public:
+        explicit arguments_mismatch_error(const std::string_view& what);
+    };
+
     class function_call_error: public error {
     public:
         explicit function_call_error(const std::string_view& what);
@@ -42,9 +47,9 @@ namespace mosaic {
         explicit function_lookup_error(const std::string_view& what);
     };
 
-    class object_lookup_error: public lookup_error {
+    class type_lookup_error: public lookup_error {
     public:
-        explicit object_lookup_error(const std::string_view& what);
+        explicit type_lookup_error(const std::string_view& what);
     };
 
     class not_implemented: public error {

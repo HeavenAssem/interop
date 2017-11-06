@@ -22,7 +22,11 @@ class test {
     int b;
 public:
     explicit test(int a): b(a) {
-        std::cout << "test object " << this << ": constructor called" << std::endl;
+        std::cout << "test object " << this << ": constructor int called" << std::endl;
+    }
+
+    explicit test(double a): b(static_cast<int>(a)) {
+        std::cout << "test object " << this << ": constructor double called" << std::endl;
     }
 
     void member1() {
@@ -52,7 +56,7 @@ namespace mosaic {
         REGISTER_FUNCTION(add)
         REGISTER_FUNCTION(say_hello)
         //REGISTER_MEMBER("member", &test::member_fn)
-        register_class<test, constructor<int>>("test")
+        register_class<test, constructor<int>, constructor<double>>("test")
             .method<&test::member1>("member1")
             .method<&test::member2>("member2")
             .method<&test::member3>("member3")

@@ -177,10 +177,10 @@ namespace mosaic {
     template <class C, class ... Constructors>
     auto register_class(const std::string & name) {
         _helper<C> mt;
-        _mosaic_module_metadata.objects.push_back(object_metadata {
+        _mosaic_module_metadata.types.push_back(object_metadata {
             .name = name
         });
-        mt.metadata = &_mosaic_module_metadata.objects.back();
+        mt.metadata = &_mosaic_module_metadata.types.back();
         register_destructor<C>(mt.metadata);
         if constexpr (sizeof...(Constructors) > 0) {
             register_constructors<C, Constructors...>(mt.metadata);
