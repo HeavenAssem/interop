@@ -87,4 +87,8 @@ namespace mosaic {
     arguments_mismatch_error::arguments_mismatch_error(const std::string_view & what) : error(what) {
 
     }
+
+    platform_loading_error::platform_loading_error(const std::string_view & what) : loading_error(what) {
+
+    }
 }

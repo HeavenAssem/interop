@@ -88,5 +88,7 @@ namespace mosaic {
             closedir(dp);
             return files;
         }
+
+        std::string_view library_extension = ".so";
     }
 }

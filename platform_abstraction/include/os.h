@@ -45,5 +45,7 @@ namespace mosaic {
          * @throws mosaic::open_path_error if couldn't open path
          */
         std::vector<std::string> walk(const std::string_view& path, const std::string_view& extension = "", bool file = true, bool directory = false);
+
+        extern std::string_view library_extension;
     }
 }

@@ -28,5 +28,7 @@ namespace mosaic {
             throw mosaic::not_implemented("mosaic::os::walk");
             return {};
         }
+
+        std::string_view library_extension = ".dll";
     }
 }

@@ -106,4 +106,9 @@ namespace mosaic {
     public:
         explicit library_unloading_error(const std::string_view& what);
     };
+
+    class platform_loading_error: public loading_error {
+    public:
+        explicit platform_loading_error(const std::string_view& what);
+    };
 }

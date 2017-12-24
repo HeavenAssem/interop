@@ -22,7 +22,7 @@ namespace mosaic {
     std::unordered_map<std::string, std::shared_ptr<module>> node::global_scope {};
 
     node::node(const std::string_view & directory) {
-        for (auto filename : os::walk(directory, library_extension)) {
+        for (auto filename : os::walk(directory, os::library_extension)) {
             try {
                 load_native_module(filename);
             } catch (error & e) {
