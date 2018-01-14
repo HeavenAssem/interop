@@ -4,7 +4,7 @@
 
 #include "module.h"
 #include "node.h"
-#include "local_function_caller.h"
+#include "metadata_backward_compatibility.h"
 
 #include "module_definitions.h"
 
@@ -18,21 +18,33 @@ using namespace std;
 
 namespace mosaic {
     module::module(shared_library && _library): library(move(_library)) {
-        /** registration stage begin **/
-        auto register_module = reinterpret_cast<register_module_function>(library.symbol("_mosaic_module_register"));
-        register_module();
+        try {
+            /** registration stage begin **/
+            auto register_module = reinterpret_cast<register_module_function>(library.symbol(MOSAIC_MODULE_REGISTER_STR));
+            register_module();
 
-        metadata = *reinterpret_cast<module_metadata*>(library.symbol("_mosaic_module_metadata"));
-        if (metadata.name.empty()) {
-            metadata.name = library.name();
+            mosaic_api_version = *reinterpret_cast<version_t*>(library.symbol(MOSAIC_FRAMEWORK_API_VERSION_STR));
+
+            /** version of module's mosaic API matches version of node **/
+            if (MOSAIC_FRAMEWORK_API_VERSION == mosaic_api_version) {
+                metadata = *reinterpret_cast<module_metadata *>(library.symbol(MOSAIC_MODULE_METADATA_STR));
+            } else {
+                metadata = convert_metadata_to_current(mosaic_api_version, library.symbol(MOSAIC_MODULE_METADATA_STR));
+            }
+
+            if (metadata.name.empty()) {
+                metadata.name = library.name();
+            }
+            validate_metadata();
+            /** registration stage end **/
+        } catch (const error_t & error) {
+            throw module_loading_error("unable to load module from native library '" + library.name() + "': " + error.what());
         }
-        validate_metadata();
-        /** registration stage end **/
     }
 
     void module::link(module_context & context) const {
         try {
-            auto initialize_module = reinterpret_cast<initialize_module_function>(library.symbol("_mosaic_module_initialize"));
+            auto initialize_module = reinterpret_cast<initialize_module_function>(library.symbol(MOSAIC_MODULE_INITIALIZE_STR));
             initialize_module(context);
         } catch (symbol_loading_error & e) {
             mosaic_logger(warning, e.what());
@@ -48,7 +60,14 @@ namespace mosaic {
     }
 
     module::~module() noexcept {
-
+        if (library) {
+            mosaic_logger(warning, "Module unload from destructor. Call unload() before destroying object.");
+            try {
+                unload();
+            } catch (error_t & e) {
+                mosaic_logger(error, e.what());
+            }
+        }
     }
 
     void module::unload() {

@@ -25,7 +25,7 @@ namespace mosaic {
         for (auto filename : os::walk(directory, os::library_extension)) {
             try {
                 load_native_module(filename);
-            } catch (error & e) {
+            } catch (error_t & e) {
                 mosaic_logger(error, e.what());
             }
         }
@@ -39,7 +39,7 @@ namespace mosaic {
             } catch (node_loading_error & e) {          // it's fine if node creation fails inside another node,
                                                         // but if this exception leaves this class,
                                                         // then root node is empty which means that application is empty
-            } catch (error & e) {
+            } catch (error_t & e) {
                 mosaic_logger(error, e.what());
             }
         }
@@ -57,7 +57,11 @@ namespace mosaic {
 
 
     module_view & node::get(const std::string & name) {
-        return *global_scope.at(name);
+        try {
+            return *global_scope.at(name);
+        } catch (const out_of_range &) {
+            throw module_lookup_error("module with name '" + name + "' was not registered");
+        }
     }
 
     node::~node() {
@@ -97,7 +101,7 @@ namespace mosaic {
             try {
                 module_pointer->unload();
                 global_scope.erase(module_name);
-            } catch (error & e) {
+            } catch (error_t & e) {
                 mosaic_logger(log, string("error during forced unload: ") + e.what());
             }
         }

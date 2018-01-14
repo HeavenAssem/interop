@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <exceptions.h>
+#include <cassert>
 
 namespace mosaic {
     namespace detail {
@@ -61,8 +62,10 @@ namespace mosaic {
             }
 
             static void check_metadata(const function_metadata & metadata) {
-                check_args(metadata.arguments);
-                check_return_type(metadata.return_type);
+                if (metadata.is_native()) {
+                    check_args(metadata.arguments);
+                    check_return_type(metadata.return_type);
+                }
             }
         };
     }
@@ -81,12 +84,15 @@ namespace mosaic {
         explicit function_view(const function_metadata & metadata)
             : metadata(metadata)
             , bound_object(nullptr)
-        {}
+        {
+            assert(!metadata.is_empty() && "create function_view from empty metadata");
+        }
 
         function_view(object_view & object, const function_metadata & metadata)
-            : metadata(metadata)
-            , bound_object(object.get_pointer())
-        {}
+            : function_view(metadata)
+        {
+            bound_object = object.get_pointer();
+        }
 
         function_view(const function_view &) = delete;
 
@@ -94,13 +100,18 @@ namespace mosaic {
          * @brief: Fast, strict call. No implicit type casting.
          */
         template <class R = void, class ... Args>
-        R call(Args ... args) {
+        R call(Args && ... args) {
             static detail::signature_checker<R, Args...> checker_instance (metadata, metadata_checkers);   /** check call signature and register check
                                                                                                       * in case if metadata changes (on function's module reload / replace) */
-            if (bound_object) {
-                return reinterpret_cast<R (*)(void *, Args ...)>(metadata.pointer)(bound_object, args...);
+            if (metadata.is_native()) {
+                if (bound_object) {
+                    return reinterpret_cast<R (*)(void *, Args ...)>(metadata.pointer)(bound_object,
+                                                                                       std::forward<Args>(args)...);
+                } else {
+                    return reinterpret_cast<R (*)(Args ...)>(metadata.pointer)(std::forward<Args>(args)...);
+                }
             } else {
-                return reinterpret_cast<R (*)(Args ...)>(metadata.pointer)(args...);
+                throw not_implemented("non-native calls are not yet implemented");
             }
         }
     };

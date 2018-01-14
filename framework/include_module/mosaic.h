@@ -11,11 +11,13 @@
 #include <exceptions.h>
 
 namespace mosaic {
+    MOSAIC_DEFINE_CURRENT_API_VERSION
+    
     extern "C" {
-        module_metadata _mosaic_module_metadata {};
+        module_metadata MOSAIC_MODULE_METADATA {};
 
-        void _mosaic_module_initialize(module_context & context);
-        void _mosaic_module_register();
+        void MOSAIC_MODULE_INITIALIZE (module_context & context);
+        void MOSAIC_MODULE_REGISTER ();
     }
 
     namespace details {

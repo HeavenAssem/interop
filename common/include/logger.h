@@ -9,9 +9,9 @@
 namespace mosaic {
     namespace logger {
         void set_enabled(bool enabled);
-        void log(const std::string_view& message, const std::string_view& location);
-        void warning(const std::string_view& message, const std::string_view& location);
-        void error(const std::string_view& message, const std::string_view& location);
+        void log(const std::string_view & message, const std::string_view & location);
+        void warning(const std::string_view & message, const std::string_view & location);
+        void error(const std::string_view & message, const std::string_view & location);
     }
 }
 

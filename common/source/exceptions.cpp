@@ -8,27 +8,27 @@ using namespace std;
 
 
 namespace mosaic {
-    error::error(const string_view &what): message(what.data()) {
+    error_t::error_t(const string_view &what): message(what.data()) {
 
     }
 
-    void error::append(const string_view &message) {
+    void error_t::append(const string_view &message) {
         this->message += message.data();
     }
 
-    const char * error::what() const noexcept {
+    const char * error_t::what() const noexcept {
         return message.c_str();
     }
 
-    not_implemented::not_implemented(const std::string_view & what) : error(what) {
+    not_implemented::not_implemented(const std::string_view & what) : error_t(what) {
 
     }
 
-    open_error::open_error(const std::string_view & what) : error(what) {
+    open_error::open_error(const std::string_view & what) : error_t(what) {
 
     }
 
-    validation_error::validation_error(const std::string_view & what) : error(what) {
+    validation_error::validation_error(const std::string_view & what) : error_t(what) {
 
     }
 
@@ -44,11 +44,15 @@ namespace mosaic {
 
     }
 
-    loading_error::loading_error(const string_view &what): error(what) {
+    loading_error::loading_error(const string_view &what): error_t(what) {
 
     }
 
     node_loading_error::node_loading_error(const std::string_view & what) : loading_error(what) {
+
+    }
+
+    module_loading_error::module_loading_error(const std::string_view & what) : loading_error(what) {
 
     }
 
@@ -64,7 +68,7 @@ namespace mosaic {
 
     }
 
-    lookup_error::lookup_error(const std::string_view & what) : error(what) {
+    lookup_error::lookup_error(const std::string_view & what) : error_t(what) {
 
     }
 
@@ -80,11 +84,11 @@ namespace mosaic {
 
     }
 
-    function_call_error::function_call_error(const std::string_view & what) : error(what) {
+    function_call_error::function_call_error(const std::string_view & what) : error_t(what) {
 
     }
 
-    arguments_mismatch_error::arguments_mismatch_error(const std::string_view & what) : error(what) {
+    arguments_mismatch_error::arguments_mismatch_error(const std::string_view & what) : error_t(what) {
 
     }
 

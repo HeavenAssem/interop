@@ -11,28 +11,28 @@
 
 
 namespace mosaic {
-    class error: std::exception {
+    class error_t: std::exception {
         std::string message;
     public:
-        explicit error(const std::string_view& what);
-        error(const error &) = default;
+        explicit error_t(const std::string_view& what);
+        error_t(const error_t &) = default;
 
         const char * what() const noexcept override;
 
         void append(const std::string_view& message);
     };
 
-    class arguments_mismatch_error: public error {
+    class arguments_mismatch_error: public error_t {
     public:
         explicit arguments_mismatch_error(const std::string_view& what);
     };
 
-    class function_call_error: public error {
+    class function_call_error: public error_t {
     public:
         explicit function_call_error(const std::string_view& what);
     };
 
-    class lookup_error: public error {
+    class lookup_error: public error_t {
     public:
         explicit lookup_error(const std::string_view& what);
     };
@@ -52,17 +52,17 @@ namespace mosaic {
         explicit type_lookup_error(const std::string_view& what);
     };
 
-    class not_implemented: public error {
+    class not_implemented: public error_t {
     public:
         explicit not_implemented(const std::string_view& what);
     };
 
-    class open_error: public error {
+    class open_error: public error_t {
     public:
         explicit open_error(const std::string_view& what);
     };
 
-    class validation_error: public error {
+    class validation_error: public error_t {
     public:
         explicit validation_error(const std::string_view& what);
     };
@@ -82,7 +82,7 @@ namespace mosaic {
         explicit open_file_error(const std::string_view& what);
     };
 
-    class loading_error: public error {
+    class loading_error: public error_t {
     public:
         explicit loading_error(const std::string_view& what);
     };
@@ -90,6 +90,11 @@ namespace mosaic {
     class node_loading_error: public loading_error {
     public:
         explicit node_loading_error(const std::string_view & what);
+    };
+
+    class module_loading_error: public loading_error {
+    public:
+        explicit module_loading_error(const std::string_view & what);
     };
 
     class library_loading_error: public loading_error {

@@ -5,6 +5,6 @@ AUX_SOURCE_DIRECTORY(. SOURCE_FILES)
 
 include_directories(${MOSAIC_ROOT}/framework/include)
 
-add_executable(root_node ${SOURCE_FILES})
+add_executable(cross_module.function_call.root_node ${SOURCE_FILES})
 
-target_link_libraries(root_node mosaic_framework gtest)
+target_link_libraries(cross_module.function_call.root_node mosaic_framework gtest)

@@ -17,6 +17,7 @@ namespace mosaic {
 
     class module: public module_view {
         shared_library  library;
+        version_t       mosaic_api_version;
         module_metadata metadata;
 
         mutable std::unordered_map<std::string, function_ptr> used_functions;

@@ -22,7 +22,7 @@ namespace mosaic {
 
         shared_library(const shared_library &) = delete;
 
-        shared_library(shared_library &&);
+        shared_library(shared_library &&) noexcept;
 
         ~shared_library();
 
@@ -32,8 +32,11 @@ namespace mosaic {
 
         void unload();
 
+        operator bool() const noexcept;
+        bool operator!() const noexcept;
+
     private:
-        void reset();
+        void reset() noexcept;
     };
 }
 

@@ -51,7 +51,7 @@ public:
 };
 
 namespace mosaic {
-    void _mosaic_module_register() {
+    void MOSAIC_MODULE_REGISTER() {
         REGISTER_FUNCTION(hello_world)
         REGISTER_FUNCTION(add)
         REGISTER_FUNCTION(say_hello)

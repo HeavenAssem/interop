@@ -35,4 +35,4 @@ namespace mosaic {
     platform_ptr instantiate_platform(const std::string & id);
 }
 
-#define register_platform_as(_id, _platform) platform_registrator __registrator_object__(_id, wrap_platform<_platform>());
+#define register_platform_as(_id, _platform) static platform_registrator __registrator_object__(_id, wrap_platform<_platform>());

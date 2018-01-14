@@ -13,7 +13,7 @@ using namespace std;
 
 using namespace rlutil;
 
-void print (const string_view & prefix, const string_view &message, const string_view &location, int color) {
+void print (const string_view & prefix, const string_view & message, const string_view & location, int color) {
     setColor(color);
     cout << prefix << ": " << "@" << location << ": " << message << endl;
     resetColor();
@@ -28,21 +28,21 @@ namespace mosaic {
             enabled = e;
         }
 
-        void log(const string_view &message, const string_view& location) {
+        void log(const string_view & message, const string_view & location) {
             if (!enabled) {
                 return;
             }
             print("<mosaic> log", message, location, GREY);
         }
 
-        void warning(const string_view &message, const string_view& location) {
+        void warning(const string_view & message, const string_view & location) {
             if (!enabled) {
                 return;
             }
             print("<mosaic> warning", message, location, YELLOW);
         }
 
-        void error(const string_view &message, const string_view& location) {
+        void error(const string_view & message, const string_view & location) {
             if (!enabled) {
                 return;
             }

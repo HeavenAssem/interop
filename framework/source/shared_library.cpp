@@ -13,16 +13,14 @@
 
 using namespace std;
 
-using namespace boost::filesystem;
-
 namespace mosaic {
-    shared_library::shared_library(const std::string_view &path, const std::string_view &name) {
+    shared_library::shared_library(const std::string_view & path, const std::string_view & name) {
         this->handle = os::load_library(path);
         this->library_name = name.empty() ? boost::filesystem::path(path.data()).stem().string() : name.data();
         mosaic_logger(log, "Loaded shared library \"" + this->library_name + "\" by path \"" + path.data() + "\"");
     }
 
-    shared_library::shared_library(shared_library && other) {
+    shared_library::shared_library(shared_library && other) noexcept {
         this->handle = other.handle;
         this->library_name = other.library_name;
 
@@ -30,14 +28,13 @@ namespace mosaic {
     }
 
     shared_library::~shared_library() {
-        try {
-            if (handle) {
-                mosaic_logger(warning, "Shared library unload from destructor. Call unload() before destroying object.");
+        if (handle) {
+            mosaic_logger(warning, "Shared library unload from destructor. Call unload() before destroying object.");
+            try {
                 unload();
+            } catch (error_t & e) {
+                mosaic_logger(error, e.what());
             }
-        }
-        catch (error &e) {
-            mosaic_logger(error, e.what());
         }
     }
 
@@ -64,8 +61,16 @@ namespace mosaic {
         }
     }
 
-    void shared_library::reset() {
+    void shared_library::reset() noexcept {
         handle = nullptr;
         library_name = "unknown";
+    }
+
+    shared_library::operator bool() const noexcept {
+        return bool(handle);
+    }
+
+    bool shared_library::operator!() const noexcept {
+        return !bool(*this);
     }
 }
