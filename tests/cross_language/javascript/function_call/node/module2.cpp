@@ -33,4 +33,5 @@ TEST_F(mosaic_test, call) {
 
     EXPECT_EQ(444, module.function("test1")->call<int32_t>());
     EXPECT_EQ("something", module.function("test2")->call<string>());
+    EXPECT_EQ(150, module.function("add")->call<int32_t>(100, 50));
 }
