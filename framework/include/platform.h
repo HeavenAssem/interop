@@ -4,14 +4,24 @@
 
 #pragma once
 
+#include "declarations.h"
+
 #include <string>
 
-namespace mosaic {
-    class platform {
-    public:
-        virtual ~platform() = default;
 
-        virtual void initialize(const std::string & execution_path) = 0;
+namespace mosaic {
+    class platform_function_t {
+    public:
+        virtual ~platform_function_t() = default;
+
+        virtual val_t call(arg_pack_t && args) = 0;
+    };
+
+    class platform_t {
+    public:
+        virtual ~platform_t() = default;
+
+        virtual std::vector<std::unique_ptr<base_module_t>> initialize(const platform_configuration_t &) = 0;
         virtual void run() = 0;
         virtual void dispose() = 0;
     };

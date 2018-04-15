@@ -14,7 +14,7 @@ namespace mosaic {
         return pointer;
     }
 
-    function_ptr object_view::function(const string & name) const {
+    function_ptr_t object_view::function(const string & name) const {
 
         auto it = find_if(metadata.methods.begin(), metadata.methods.end(), [&](const function_metadata & fn_metadata){
             return name == fn_metadata.name;

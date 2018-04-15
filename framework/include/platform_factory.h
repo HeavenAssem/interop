@@ -8,15 +8,15 @@
 #include <string_view>
 
 namespace mosaic {
-    class platform_factory {
+    class platform_factory_t {
     public:
         virtual platform_ptr instantiate() = 0;
-        virtual ~platform_factory() = default;
+        virtual ~platform_factory_t() = default;
     };
 
     template <class Platform>
-    class wrapped_platform final: public platform_factory {
-        static_assert(std::is_base_of<platform, Platform>::value, "platform must be derived from mosaic::platform");
+    class wrapped_platform final: public platform_factory_t {
+        static_assert(std::is_base_of<platform_t, Platform>::value, "platform must be derived from mosaic::platform");
     public:
         platform_ptr instantiate() override {
             return std::make_shared<Platform>();

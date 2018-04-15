@@ -6,6 +6,7 @@
 
 #include <gtest/gtest.h>
 
+using namespace std;
 
 namespace mosaic {
     void MOSAIC_MODULE_REGISTER() {
@@ -24,7 +25,7 @@ namespace mosaic {
 class mosaic_test: public ::testing::Test {};
 
 
-const auto other_module = "cross_module.function_call.module1";
+const auto other_module = "module1";
 
 TEST_F(mosaic_test, call) {
     EXPECT_THROW(mosaic::ctx->get("not exists"), mosaic::module_lookup_error);

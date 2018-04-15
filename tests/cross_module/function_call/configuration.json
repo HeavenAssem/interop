@@ -1,0 +1,13 @@
+{
+    "name": "cross_module.function_call",
+    "native_modules": [
+        {
+            "name": "module1",
+            "path": "node/cross_module.function_call.module1.so"
+        },
+        {
+            "name": "module2",
+            "path": "node/cross_module.function_call.module2.so"
+        }
+    ]
+}

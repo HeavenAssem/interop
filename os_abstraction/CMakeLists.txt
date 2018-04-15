@@ -17,6 +17,6 @@ AUX_SOURCE_DIRECTORY(source SOURCE_FILES)
 
 include_directories(include ../common/include)
 
-add_library(platform_abstraction SHARED ${SOURCE_FILES} ${HEADER_FILES} ${PLATFORM_HEADER_FILES})
+add_library(os_abstraction SHARED ${SOURCE_FILES} ${HEADER_FILES} ${PLATFORM_HEADER_FILES})
 
-target_link_libraries(platform_abstraction common ${PLATFORM_LIBRARIES})
+target_link_libraries(os_abstraction common ${PLATFORM_LIBRARIES})

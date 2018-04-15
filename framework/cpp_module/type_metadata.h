@@ -9,7 +9,20 @@
 
 
 namespace mosaic {
-    enum class type_enum: uint8_t {TE_UNSUPPORTED, TE_VOID, TE_BOOL, TE_CHAR, TE_SHORT, TE_FLOAT, TE_DOUBLE, TE_INT, TE_LONG, TE_LONG_LONG, TE_POINTER};
+    enum class type_enum: uint8_t {
+        TE_UNSUPPORTED,
+        TE_VOID,
+        TE_BOOL,
+        TE_CHAR,
+        TE_SHORT,
+        TE_FLOAT,
+        TE_DOUBLE,
+        TE_INT,
+        TE_LONG,
+        TE_LONG_LONG,
+        TE_POINTER,
+        TE_STRING
+    };
 
     namespace details {
         template <typename Ty> struct map_enum { static constexpr type_enum type = type_enum::TE_UNSUPPORTED; };
@@ -26,6 +39,7 @@ namespace mosaic {
         MAP_ENUM(int, TE_INT)
         MAP_ENUM(long, TE_LONG)
         MAP_ENUM(long long, TE_LONG_LONG)
+        MAP_ENUM(std::string, TE_STRING)    // <- TODO: change: will break abi compatibility
 
 #undef MAP_ENUM
     }
@@ -50,6 +64,7 @@ namespace mosaic {
             case type_enum::TE_LONG:            return "long";
             case type_enum::TE_LONG_LONG:       return "long long";
             case type_enum::TE_POINTER:         return "pointer";
+            case type_enum::TE_STRING:          return "string";
         }
     }
 

@@ -5,5 +5,5 @@
 #include "version.h"
 
 namespace mosaic {
-    MOSAIC_DEFINE_CURRENT_API_VERSION
+    MOSAIC_DEFINE_CURRENT_ABI_VERSION
 }

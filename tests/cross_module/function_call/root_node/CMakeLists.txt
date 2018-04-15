@@ -8,3 +8,5 @@ include_directories(${MOSAIC_ROOT}/framework/include)
 add_executable(cross_module.function_call.root_node ${SOURCE_FILES})
 
 target_link_libraries(cross_module.function_call.root_node mosaic_framework gtest)
+
+add_test(cross_module.function_call cross_module.function_call.root_node)

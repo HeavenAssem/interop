@@ -11,6 +11,7 @@
 #include "module_metadata.h"
 
 #include <functional>
+#include <declarations.h>
 
 
 namespace mosaic {
@@ -30,7 +31,8 @@ namespace mosaic {
         }
 
     public:
-        virtual function_ptr function(const std::string & name) const = 0;
+        virtual function_ptr_t function(const std::string & name) = 0;
+
         template <typename ... Args>
         object_ptr create(const std::string & name, Args && ... args) const {
             auto & metadata = get_object_metadata(name);
@@ -54,5 +56,7 @@ namespace mosaic {
         }
         virtual void listen(const std::string_view & module_name, std::function<void()> && handler) = 0;
         virtual const std::string& name() const = 0;
+
+        virtual ~module_view() = default;
     };
 }

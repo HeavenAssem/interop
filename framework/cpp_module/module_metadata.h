@@ -11,6 +11,7 @@
 #include <vector>
 
 namespace mosaic {
+    // TODO: do not use C++ here
     struct module_metadata {
         std::string name;
         version_t version;

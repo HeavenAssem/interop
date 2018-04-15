@@ -1,0 +1,22 @@
+{
+    "name": "root node",
+    "platforms": {
+        "js": {
+            "execution_path": "/usr/lib/v8/",
+            "modules": [
+                {
+                    "name": "js module",
+                    "paths": [
+                        "test.js"
+                    ]
+                }
+            ]
+        }
+    },
+    "native_modules": [
+        {
+            "name": "native module",
+            "path": "test.so"
+        }
+    ]
+}

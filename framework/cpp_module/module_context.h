@@ -6,14 +6,13 @@
 
 #include "module_view.h"
 
+#include <declarations.h>
+
 
 namespace mosaic {
     class module_context {
     public:
         virtual module_view & get(const std::string & name) = 0;
-
-        virtual ~module_context() {};
+        virtual ~module_context() = default;
     };
 }
-
-

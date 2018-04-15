@@ -5,6 +5,7 @@
 
 
 #include "module_context.h"
+#include "declarations.h"
 
 #include <unordered_map>
 #include <memory>
@@ -13,33 +14,32 @@
 
 
 namespace mosaic {
-    class module;
+    struct node_configuration_t;
+    struct native_module_configuration_t;
 
-    class node : public module_context {
-        static std::unordered_map<std::string, std::shared_ptr<module>> global_scope;
+    class node_t : public module_context {
+        // static std::unordered_map<std::string, std::shared_ptr<native_module_t>> global_scope;
 
-        std::unordered_map<std::string, std::shared_ptr<module>> local_scope;
-        std::unordered_map<std::string, std::unique_ptr<node>>   nodes;
+        std::string name;
+        std::unordered_map<std::string, std::unique_ptr<base_module_t>> local_scope;
+        std::unordered_map<std::string, platform_ptr>            platforms;
     public:
-        node(const std::string_view & directory);
-        node(const node &) = delete;
-        node(node &&);
+        node_t(const node_configuration_t &);
+        node_t(const node_t &) = delete;
+        node_t(node_t &&);
 
         void link();
 
 
         module_view & get(const std::string & name) override;
 
-
-        virtual ~node();
+        virtual ~node_t();
 
         void unload(bool forced = false);
 
     private:
-        void load_native_module(const std::string_view & filename);
+        void load_native_module(const native_module_configuration_t &);
 
         void forced_unload() noexcept;
     };
 }
-
-

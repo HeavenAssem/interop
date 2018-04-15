@@ -7,10 +7,11 @@
 
 namespace mosaic {
     module_metadata convert_metadata_to_current(const version_t & version, const void * metadata) {
-        if (version == MOSAIC_FRAMEWORK_API_VERSION) {
+        /** version of module's mosaic ABI matches version of node **/
+        if (version == MOSAIC_FRAMEWORK_ABI_VERSION) {
             return *reinterpret_cast<const module_metadata *>(metadata);
         } else {
-            throw error_t("unable to convert metadata of version " + version.to_string() + " to current format version (" + MOSAIC_FRAMEWORK_API_VERSION.to_string() + ")");
+            throw error_t("unable to convert metadata of version " + version.to_string() + " to current format version (" + MOSAIC_FRAMEWORK_ABI_VERSION.to_string() + ")");
         }
     }
 }

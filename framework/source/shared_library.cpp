@@ -3,6 +3,7 @@
 //
 
 #include "shared_library.h"
+#include "global.h"
 
 #include "os.h"
 #include "exceptions.h"
@@ -49,7 +50,9 @@ namespace mosaic {
     void shared_library::unload() {
         if (handle) {
             try {
-                os::unload_library(handle);
+                if (!global::Testing) {  // manual unload of shared library containing tests will cause SEGFAULT in GoogleTest
+                    os::unload_library(handle);
+                }
                 mosaic_logger(log, "Unloaded shared library \"" + this->library_name + "\"");
                 reset();
             } catch (library_unloading_error &error) {

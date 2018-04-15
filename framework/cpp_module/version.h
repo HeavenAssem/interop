@@ -37,8 +37,8 @@ namespace mosaic {
     };
 
     extern "C" {
-        extern const version_t MOSAIC_FRAMEWORK_API_VERSION;
+        extern const version_t MOSAIC_FRAMEWORK_ABI_VERSION;
     }
 }
 
-#define MOSAIC_DEFINE_CURRENT_API_VERSION const version_t MOSAIC_FRAMEWORK_API_VERSION { 0, 1, 0, 0 };
+#define MOSAIC_DEFINE_CURRENT_ABI_VERSION const version_t MOSAIC_FRAMEWORK_ABI_VERSION { 0, 1, 0, 0 };

@@ -20,7 +20,7 @@ namespace mosaic {
     };
 
     struct function_metadata {
-        void * pointer;
+        void * pointer = nullptr;
         std::string name;
         std::vector<type_metadata> arguments;
         type_metadata return_type;

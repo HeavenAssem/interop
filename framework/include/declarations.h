@@ -5,11 +5,23 @@
 #pragma once
 
 #include <memory>
+#include <vector>
+#include <any>
 
 namespace mosaic {
-    class platform;
-    class platform_factory;
+    class module_view;
+    class base_module_t;
 
-    using platform_ptr = std::shared_ptr<platform>;
-    using platform_factory_ptr = std::shared_ptr<platform_factory>;
+    class platform_t;
+    class platform_factory_t;
+    class platform_function_t;
+
+    struct platform_configuration_t;
+
+    using platform_ptr          = std::shared_ptr<platform_t>;
+    using platform_factory_ptr  = std::shared_ptr<platform_factory_t>;
+    using platform_function_ptr = std::shared_ptr<platform_function_t>;
+
+    using val_t       = std::any;
+    using arg_pack_t  = std::vector<val_t>;
 }

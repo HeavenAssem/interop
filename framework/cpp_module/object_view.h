@@ -20,7 +20,7 @@ namespace mosaic {
 
         }
 
-        function_ptr function(const std::string & name) const;
+        function_ptr_t function(const std::string & name) const;
 
         void * get_pointer();
 

@@ -1,0 +1,22 @@
+{
+    "name": "cross_module.function_call",
+    "platforms": {
+        "js": {
+            "execution_path": "/usr/lib/v8/",
+            "modules": [
+                {
+                    "name": "js.module",
+                    "paths": [
+                        "node/module.js"
+                    ]
+                }
+            ]
+        }
+    },
+    "native_modules": [
+        {
+            "name": "cpp.module",
+            "path": "node/cross_language.javascript.function_call.module2.so"
+        }
+    ]
+}

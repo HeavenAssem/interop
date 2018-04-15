@@ -10,6 +10,7 @@
 #include <memory>
 #include <exceptions.h>
 #include <cassert>
+#include <any>
 
 namespace mosaic {
     namespace detail {
@@ -73,27 +74,18 @@ namespace mosaic {
     /**
      * @details: framework should be aware of every instance of function_view to be able to re-check all calls if metadata changes
      *           therefore, it is non - copyable.
-     *           To store function_view use smart pointers.
+     *           To store function_view use function_ptr.
      */
     class function_view {
-        std::vector<detail::metadata_checker> metadata_checkers;
-        const function_metadata & metadata;
-        void * bound_object;
+        std::vector<detail::metadata_checker>   metadata_checkers;
+        function_metadata                       metadata;
+        void *                                  bound_object;
+        platform_function_ptr                   platform_function;
 
     public:
-        explicit function_view(const function_metadata & metadata)
-            : metadata(metadata)
-            , bound_object(nullptr)
-        {
-            assert(!metadata.is_empty() && "create function_view from empty metadata");
-        }
-
-        function_view(object_view & object, const function_metadata & metadata)
-            : function_view(metadata)
-        {
-            bound_object = object.get_pointer();
-        }
-
+        explicit function_view(const function_metadata & metadata);
+        function_view(object_view & object, const function_metadata & metadata);
+        function_view(const platform_function_ptr & function, const function_metadata & metadata);
         function_view(const function_view &) = delete;
 
         /**
@@ -111,9 +103,18 @@ namespace mosaic {
                     return reinterpret_cast<R (*)(Args ...)>(metadata.pointer)(std::forward<Args>(args)...);
                 }
             } else {
-                throw not_implemented("non-native calls are not yet implemented");
+                assert(platform_function);
+
+                if constexpr (std::is_void<R>::value) {
+                    non_native_call(std::vector<std::any> { std::forward<Args>(args)... });
+                    return R();
+                } else {
+                    return std::any_cast<R>(non_native_call(std::vector<std::any> {std::forward<Args>(args)...}));
+                }
             }
         }
+
+    private:
+        std::any non_native_call(std::vector<std::any> && args);
     };
 }
-
