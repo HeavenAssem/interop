@@ -1,24 +1,36 @@
 # MosaicFramework
 Cross - language, modular, event driven framework for application development
 
-Mosaic is a application architecture framework that aims to provide easy interoperability between different languages (planned):
+Mosaic is a application architecture framework that aims to provide an easy interoperability on multiple levels:
+ * Language level: ability to write different parts of system using different languages
+ * Architecture level: ability to choose how to run different parts of system
+ * Data level: ability to choose data format for serialization/deserialization (if used)
 
-- C/C++
-- D
-- JavaScript
-- Python
-- (maybe) Haskell
+Planned languages to support:
+ * C/C++
+ * D
+ * JavaScript
+ * Python
+ * (maybe) Haskell
+ 
+ Planned architecture options (Transports):
+  * Direct (native to native only): modules are acting like plugins, running in same process and directly calling functions and trigger events with minimal overhead
+  * Shared memory: modules run in separate processes and interact via shared memory
+  * Sockets: interprocess communication via sockets
+  * Websockets
+  * HTTP
+  
+ Planned data representation options:
+  * JSON
+  * msgpack
+  * protobuf
+  * flatbuffers
 
 Application consists of one or more nodes.  
 Node consists of one or more modules.  
 Module consists of types, functions and events.  
 Node corresponds to process.  
-Modules of same application can interact with each other via different buses, such as:
-
-- Shared memory
-- Sockets
-- WebSockets
-- etc...
+Modules of same application can interact with each other via different transports, described above
 
 Modules of the same node interact using same API as if they were in different nodes.  
 Modules of the same node interact with each other with minimum overhead, without bus.  
