@@ -114,6 +114,29 @@ namespace mosaic {
             }
         }
 
+        // template <typename R, typename C, typename ...Args, R (C::*function)(Args...)>
+        // struct proxy<R (C::*)(Args...)> {
+        //     using Class = C;
+        //     using A = Args...;
+        //     using Ret = R;
+        // };
+
+        // /**
+        //  * @brief Call function using c++ definition (class method)
+        //  */
+        // template <typename M>
+        // proxy<M>::Ret call_as(proxy<M>::A && ... args) {
+        //     return call<proxy<M>::Ret>(std::forward<proxy<M>::A>(args)...);
+        // }
+
+        // /**
+        //  * @brief Call function using c++ definition (function)
+        //  */
+        // template <typename R, typename ...Args, R (*function)(Args...)>
+        // R call_as(Args && ... args) {
+        //     return call<R>(std::forward<Args>(args)...);
+        // }
+
     private:
         std::any non_native_call(std::vector<std::any> && args);
     };

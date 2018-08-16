@@ -1,0 +1,4 @@
+#!/bin/bash
+
+pacman -Syu --noconfirm
+pacman -S bash-completion binutils boost clang cmake gtest make --noconfirm

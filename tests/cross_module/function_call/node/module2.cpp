@@ -24,6 +24,7 @@ namespace mosaic {
 
 class mosaic_test: public ::testing::Test {};
 
+typedef void (*hello_world_t)(int n, float k, double a);
 
 const auto other_module = "module1";
 
