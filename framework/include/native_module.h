@@ -37,7 +37,7 @@ namespace mosaic {
         void unload() override;
 
     private:
-        function_ptr_t create_function(const std::string & name) override;
+        function_ptr_t fetch_function(const std::string & name) override;
 
         void validate_metadata() const;
     };

@@ -22,7 +22,7 @@ namespace mosaic {
         ~platform_v8_module_t();
 
         void listen(const std::string_view & module_name, std::function<void()> && handler) override;
-        function_ptr_t create_function(const std::string & name) override;
+        function_ptr_t fetch_function(const std::string & name) override;
         const std::string & name() const override;
         void unload() override;
 

@@ -30,6 +30,6 @@ namespace mosaic {
         virtual void unload();
 
     protected:
-        virtual function_ptr_t create_function(const std::string & name) = 0;
+        virtual function_ptr_t fetch_function(const std::string & name) = 0;
     };
 }

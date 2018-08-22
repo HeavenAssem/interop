@@ -78,7 +78,7 @@ namespace mosaic {
 
     }
 
-    function_ptr_t platform_v8_module_t::create_function(const std::string & name) {
+    function_ptr_t platform_v8_module_t::fetch_function(const std::string & name) {
         // Enter the isolate
         v8::Isolate::Scope isolate_scope(isolate);
         // Create a stack-allocated handle scope.

@@ -17,6 +17,6 @@ namespace mosaic {
     public:
         platform_function_v8_t(v8::Handle<v8::Function> && handle, platform_v8_module_t & platform);
 
-        val_t call(arg_pack_t && args) override;
+        val_t call(arg_pack_t && args) override;4
     };
 }

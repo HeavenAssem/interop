@@ -98,7 +98,7 @@ namespace mosaic {
 
     }
 
-    function_ptr_t native_module_t::create_function(const std::string & name) {
+    function_ptr_t native_module_t::fetch_function(const std::string & name) {
         auto it = find_if(metadata.functions.begin(), metadata.functions.end(), [&](const function_metadata & fn_metadata){
             return name == fn_metadata.name;
         });

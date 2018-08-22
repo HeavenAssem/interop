@@ -107,7 +107,7 @@ namespace mosaic {
 
                 if constexpr (std::is_void<R>::value) {
                     non_native_call(std::vector<std::any> { std::forward<Args>(args)... });
-                    return R();
+                    return;
                 } else {
                     return std::any_cast<R>(non_native_call(std::vector<std::any> {std::forward<Args>(args)...}));
                 }
