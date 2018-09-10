@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace mosaic {
+namespace interop {
     base_module_t::base_module_t()
     {
 

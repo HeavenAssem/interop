@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace mosaic {
+namespace interop {
     unordered_map<string, platform_factory_ptr> platforms;
 
     platform_registrator::platform_registrator(const std::string & id, platform_factory_ptr platform) {

@@ -7,7 +7,7 @@
 using namespace std;
 
 
-namespace mosaic {
+namespace interop {
     error_t::error_t(const string_view &what): message(what.data()) {
 
     }

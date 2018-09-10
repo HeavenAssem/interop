@@ -8,7 +8,7 @@
 
 #include <v8.h>
 
-namespace mosaic {
+namespace interop {
     struct platform_module_configuration_t;
 
     class platform_v8_module_t : public base_module_t {

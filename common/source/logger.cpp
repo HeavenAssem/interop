@@ -19,7 +19,7 @@ void print (const string_view & prefix, const string_view & message, const strin
     resetColor();
 }
 
-namespace mosaic {
+namespace interop {
     namespace logger {
 
         bool enabled = true;
@@ -32,21 +32,21 @@ namespace mosaic {
             if (!enabled) {
                 return;
             }
-            print("<mosaic> log", message, location, GREY);
+            print("<interop> log", message, location, GREY);
         }
 
         void warning(const string_view & message, const string_view & location) {
             if (!enabled) {
                 return;
             }
-            print("<mosaic> warning", message, location, YELLOW);
+            print("<interop> warning", message, location, YELLOW);
         }
 
         void error(const string_view & message, const string_view & location) {
             if (!enabled) {
                 return;
             }
-            print("<mosaic> error", message, location, RED);
+            print("<interop> error", message, location, RED);
         }
     }
 }

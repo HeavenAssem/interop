@@ -15,7 +15,7 @@
 using namespace std;
 using namespace v8;
 
-namespace mosaic {
+namespace interop {
     platform_v8_module_t::platform_v8_module_t(Isolate * isolate, const platform_module_configuration_t & configuration)
         : base_module_t()
         , isolate(isolate)

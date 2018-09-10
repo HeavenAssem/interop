@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace mosaic {
+namespace interop {
     void * object_view::get_pointer() {
         return pointer;
     }

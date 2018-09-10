@@ -12,7 +12,7 @@
 #include <cassert>
 #include <any>
 
-namespace mosaic {
+namespace interop {
     namespace detail {
         using metadata_checker = void(*)(const function_metadata & );
 
@@ -113,13 +113,6 @@ namespace mosaic {
                 }
             }
         }
-
-        // template <typename R, typename C, typename ...Args, R (C::*function)(Args...)>
-        // struct proxy<R (C::*)(Args...)> {
-        //     using Class = C;
-        //     using A = Args...;
-        //     using Ret = R;
-        // };
 
         // /**
         //  * @brief Call function using c++ definition (class method)

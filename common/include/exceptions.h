@@ -10,7 +10,7 @@
 #include <string>
 
 
-namespace mosaic {
+namespace interop {
     class error_t: std::exception {
         std::string message;
     public:

@@ -13,7 +13,7 @@
 #include <definitions.h>
 
 
-namespace mosaic {
+namespace interop {
     struct node_configuration_t;
     struct native_module_configuration_t;
 

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace mosaic {
+namespace interop {
     node_configuration_t load_configuration(string && filename)
     {
         Json::Value root;

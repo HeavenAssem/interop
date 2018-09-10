@@ -8,7 +8,7 @@
 using namespace std;
 using namespace v8;
 
-namespace mosaic {
+namespace interop {
     namespace {
         /*-----------<< utility >>------------*/
         val_t from_v8(const Local<Value> & value) {

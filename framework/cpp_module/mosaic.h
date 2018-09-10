@@ -10,7 +10,7 @@
 
 #include <exceptions.h>
 
-namespace mosaic {
+namespace interop {
     MOSAIC_DEFINE_CURRENT_ABI_VERSION
 
     extern "C" {
@@ -194,4 +194,4 @@ namespace mosaic {
 }
 
 #define REGISTER_MEMBER(name, fn) register_function(name, proxy<decltype(fn), fn>::call);
-#define REGISTER_FUNCTION(fn) mosaic::register_function(#fn, fn);
+#define REGISTER_FUNCTION(fn) interop::register_function(#fn, fn);

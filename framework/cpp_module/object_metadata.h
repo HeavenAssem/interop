@@ -8,7 +8,7 @@
 #include "function_metadata.h"
 
 
-namespace mosaic {
+namespace interop {
     struct object_metadata {
         std::string                         name;
         destructor_metadata                 destructor;

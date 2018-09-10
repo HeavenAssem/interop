@@ -17,7 +17,7 @@
 using namespace std;
 
 
-namespace mosaic {
+namespace interop {
     namespace {
         version_t get_version(const shared_library & library) {
             return *reinterpret_cast<version_t*>(library.symbol(MOSAIC_FRAMEWORK_API_VERSION_STR));
@@ -38,7 +38,7 @@ namespace mosaic {
             auto register_module = reinterpret_cast<register_module_function>(library.symbol(MOSAIC_MODULE_REGISTER_STR));
             register_module();
 
-            metadata = mosaic::get_metadata(library);
+            metadata = interop::get_metadata(library);
 
             if (!configuration.name.empty()) {
                 metadata.name = configuration.name;

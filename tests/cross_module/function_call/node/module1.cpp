@@ -2,7 +2,7 @@
 // Created by islam on 13.05.17.
 //
 
-#include <mosaic.h>
+#include <interop.h>
 #include <iostream>
 
 
@@ -50,7 +50,7 @@ public:
     }
 };
 
-namespace mosaic {
+namespace interop {
     void MOSAIC_MODULE_REGISTER() {
         REGISTER_FUNCTION(hello_world)
         REGISTER_FUNCTION(add)

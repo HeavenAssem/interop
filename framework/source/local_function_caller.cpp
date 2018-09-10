@@ -7,7 +7,7 @@
 // #include <dyncall.h>
 
 
-// namespace mosaic {
+// namespace interop {
 //     void local_function_caller::push_arg(double arg) {
 //         if (cast_argument(arg))
 //             return;

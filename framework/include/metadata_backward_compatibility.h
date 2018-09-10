@@ -6,6 +6,6 @@
 
 #include "module_metadata.h"
 
-namespace mosaic {
+namespace interop {
     module_metadata convert_metadata_to_current(const version_t & version, const void * metadata);
 }

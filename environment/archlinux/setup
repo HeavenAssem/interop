@@ -1,4 +1,33 @@
 #!/bin/bash
 
+echo "[SETUP]: pacman packages installation..."
 pacman -Syu --noconfirm
-pacman -S bash-completion binutils boost clang cmake gtest make --noconfirm
+pacman -S --noconfirm \
+bash-completion \
+binutils \
+boost \
+clang \
+cmake \
+gtest \
+make \
+git \
+wget \
+yajl
+
+cd /tmp
+
+echo "[SETUP]: package-query installation..."
+git clone https://aur.archlinux.org/package-query.git
+cd package-query
+# note: makepkg refuses to run as root and thus this mumbo-jumbo
+su nobody -c "makepkg -si"
+cd ..
+echo "[SETUP]: yaourt installation..."
+git clone https://aur.archlinux.org/yaourt.git
+cd yaourt
+su nobody -c "makepkg -si"
+
+echo "[SETUP]: cleanup..."
+cd /tmp
+rm -rf /tmp/*
+echo "[SETUP]: done"

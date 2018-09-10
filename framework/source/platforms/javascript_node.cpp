@@ -14,7 +14,7 @@ using namespace std;
 using namespace v8;
 
 
-namespace mosaic {
+namespace interop {
     class platform_nodejs final: public platform {
     public:
         void initialize(const string & execution_path) override {

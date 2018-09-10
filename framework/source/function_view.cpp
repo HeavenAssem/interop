@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace mosaic {
+namespace interop {
     function_view::function_view(const function_metadata & metadata)
         : metadata(metadata)
         , bound_object(nullptr)

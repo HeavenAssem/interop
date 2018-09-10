@@ -8,7 +8,7 @@
 #include "function_caller.h"
 #include "module_metadata.h"
 
-namespace mosaic {
+namespace interop {
     class local_function_caller : public function_caller {
         static void * vm;
         static uint32_t count;
@@ -122,6 +122,3 @@ namespace mosaic {
         }
     };
 }
-
-
-

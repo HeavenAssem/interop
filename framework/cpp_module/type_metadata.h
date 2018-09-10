@@ -7,7 +7,7 @@
 #include <string>
 
 
-namespace mosaic {
+namespace interop {
     enum class type_enum: uint8_t {
         TE_UNSUPPORTED,
         TE_VOID,

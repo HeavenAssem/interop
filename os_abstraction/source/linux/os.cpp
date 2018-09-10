@@ -20,16 +20,16 @@
 using namespace std;
 
 
-namespace mosaic {
+namespace interop {
     namespace os {
         library_handle load_library(const string_view & path) {
             if (path.empty()) {
-                throw mosaic::library_loading_error("Failed to load library: empty path.");
+                throw interop::library_loading_error("Failed to load library: empty path.");
             }
 
             auto handle = dlopen(path.data(), RTLD_LAZY);
             if (handle == NULL) {
-                throw mosaic::library_loading_error(string("Failed to load library by path: \"") + path.data() +
+                throw interop::library_loading_error(string("Failed to load library by path: \"") + path.data() +
                                                     "\"\nError: " + dlerror()
                 );
             }
@@ -39,7 +39,7 @@ namespace mosaic {
         library_handle load_symbol(library_handle library, const string_view & name) {
             auto pointer = dlsym(library, name.data());
             if (pointer == NULL) {
-                throw mosaic::symbol_loading_error(string("Failed to load symbol with name: \"") + name.data() +
+                throw interop::symbol_loading_error(string("Failed to load symbol with name: \"") + name.data() +
                                                    "\"\nError: " + dlerror()
                 );
             }
@@ -48,7 +48,7 @@ namespace mosaic {
 
         void unload_library(library_handle library) {
             if (dlclose(library) != 0) {
-                throw mosaic::library_unloading_error(string("Failed to unload library.") +
+                throw interop::library_unloading_error(string("Failed to unload library.") +
                                                       "\"\nError: " + dlerror()
                 );
             }
@@ -59,7 +59,7 @@ namespace mosaic {
             mosaic_logger(log, "open directory: " + string(path));
             if ((dp = opendir(path.data())) == nullptr) {
                 auto error = read_errno();
-                throw mosaic::open_path_error(string("Failed to open directory by path \"") + path.data() + "\": " + error.data());
+                throw interop::open_path_error(string("Failed to open directory by path \"") + path.data() + "\": " + error.data());
             }
 
             const auto file      = static_cast<bool>(entry_type & File);

@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
         throw runtime_error("no config");
     }
 
-    mosaic::node_t application(mosaic::load_configuration(move(configPath)));
+    interop::node_t application(interop::load_configuration(move(configPath)));
     application.link();
 
     global::Testing = true;

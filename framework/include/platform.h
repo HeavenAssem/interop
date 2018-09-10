@@ -9,7 +9,7 @@
 #include <string>
 
 
-namespace mosaic {
+namespace interop {
     class platform_function_t {
     public:
         virtual ~platform_function_t() = default;

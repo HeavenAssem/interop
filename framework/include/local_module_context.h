@@ -7,9 +7,8 @@
 #include "module_context.h"
 
 
-namespace mosaic {
+namespace interop {
     class local_module_context : public module_context {
     public:
     };
 }
-

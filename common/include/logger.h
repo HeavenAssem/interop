@@ -6,7 +6,7 @@
 #include "definitions.h"
 
 
-namespace mosaic {
+namespace interop {
     namespace logger {
         void set_enabled(bool enabled);
         void log(const std::string_view & message, const std::string_view & location);
@@ -15,5 +15,4 @@ namespace mosaic {
     }
 }
 
-#define mosaic_logger(type, message) mosaic::logger::type(message, __PRETTY_FUNCTION__)
-
+#define mosaic_logger(type, message) interop::logger::type(message, __PRETTY_FUNCTION__)

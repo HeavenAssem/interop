@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 
-namespace mosaic {
+namespace interop {
     class module_context;
 
     class base_module_t: public module_view {

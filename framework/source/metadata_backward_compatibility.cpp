@@ -5,9 +5,9 @@
 #include "metadata_backward_compatibility.h"
 #include "exceptions.h"
 
-namespace mosaic {
+namespace interop {
     module_metadata convert_metadata_to_current(const version_t & version, const void * metadata) {
-        /** version of module's mosaic ABI matches version of node **/
+        /** version of module's interop ABI matches version of node **/
         if (version == MOSAIC_FRAMEWORK_ABI_VERSION) {
             return *reinterpret_cast<const module_metadata *>(metadata);
         } else {

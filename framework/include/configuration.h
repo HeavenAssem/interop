@@ -6,7 +6,7 @@
 
 #include <boost/filesystem/path.hpp>
 
-namespace mosaic {
+namespace interop {
     struct platform_module_configuration_t
     {
         std::string name;

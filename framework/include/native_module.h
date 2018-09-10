@@ -11,7 +11,7 @@
 
 
 
-namespace mosaic {
+namespace interop {
     class module_context;
     class native_module_configuration_t;
 

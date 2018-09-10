@@ -10,12 +10,10 @@
 #include <string>
 
 
-namespace mosaic {
+namespace interop {
     class scope {
         std::unordered_map<std::string, module_metadata> modules_metadata;
     public:
 
     };
 }
-
-

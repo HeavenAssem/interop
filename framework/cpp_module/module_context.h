@@ -9,7 +9,7 @@
 #include <declarations.h>
 
 
-namespace mosaic {
+namespace interop {
     class module_context {
     public:
         virtual module_view & get(const std::string & name) = 0;

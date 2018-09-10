@@ -18,7 +18,7 @@ using namespace std;
 using namespace v8;
 
 
-namespace mosaic {
+namespace interop {
 
     class platform_v8_t final: public platform_t {
         Platform               * platform  = nullptr;

@@ -4,7 +4,7 @@
 //
 
 
-namespace mosaic {
+namespace interop {
     class function_caller {
     public:
         virtual void push_arg(double arg) = 0;
@@ -32,4 +32,3 @@ namespace mosaic {
     };
 
 }
-

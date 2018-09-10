@@ -8,7 +8,7 @@
 
 #include <v8.h>
 
-namespace mosaic {
+namespace interop {
     class platform_v8_module_t;
 
     class platform_function_v8_t final : public platform_function_t {

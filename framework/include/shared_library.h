@@ -8,7 +8,7 @@
 #include <string>
 
 
-namespace mosaic {
+namespace interop {
     /**
      * @class shared_library
      * @brief encapsulates shared library, manages its lifetime
@@ -39,5 +39,3 @@ namespace mosaic {
         void reset() noexcept;
     };
 }
-
-

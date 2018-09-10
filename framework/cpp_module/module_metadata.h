@@ -10,7 +10,7 @@
 
 #include <vector>
 
-namespace mosaic {
+namespace interop {
     // TODO: do not use C++ here
     struct module_metadata {
         std::string name;

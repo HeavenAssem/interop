@@ -4,6 +4,6 @@
 
 #include "version.h"
 
-namespace mosaic {
+namespace interop {
     MOSAIC_DEFINE_CURRENT_ABI_VERSION
 }

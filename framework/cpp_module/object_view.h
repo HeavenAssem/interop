@@ -7,7 +7,7 @@
 #include "declarations.h"
 
 
-namespace mosaic {
+namespace interop {
     class object_view {
         const object_metadata & metadata;
         void * pointer;
@@ -27,5 +27,3 @@ namespace mosaic {
         ~object_view();
     };
 }
-
-

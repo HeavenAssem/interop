@@ -7,7 +7,7 @@
 #include <string_view>
 
 
-namespace mosaic {
+namespace interop {
     typedef void * library_handle;
     typedef void * library_symbol_handle;
 }

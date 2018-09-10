@@ -14,7 +14,7 @@
 
 using namespace std;
 
-namespace mosaic {
+namespace interop {
     shared_library::shared_library(const std::string_view & path, const std::string_view & name) {
         this->handle = os::load_library(path);
         this->library_name = name.empty() ? boost::filesystem::path(path.data()).stem().string() : name.data();

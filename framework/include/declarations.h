@@ -8,7 +8,7 @@
 #include <vector>
 #include <any>
 
-namespace mosaic {
+namespace interop {
     class module_view;
     class base_module_t;
 

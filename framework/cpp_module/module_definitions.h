@@ -8,10 +8,9 @@
 #include "module_context.h"
 
 
-namespace mosaic {
+namespace interop {
     typedef module_metadata (*describe_module_function)();
     typedef void (*initialize_module_function)(module_context &);
     typedef void (*register_module_function)();
     typedef void (*shutdown_module_function)();
 }
-

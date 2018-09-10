@@ -9,7 +9,7 @@
 #include <vector>
 
 
-namespace mosaic {
+namespace interop {
     struct constructor_metadata {
         void * pointer;
         std::vector<type_metadata> arguments;

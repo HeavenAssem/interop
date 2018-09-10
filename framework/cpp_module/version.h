@@ -8,7 +8,7 @@
 
 #include <string>
 
-namespace mosaic {
+namespace interop {
     struct version_t {
         uint16_t major;
         uint16_t minor;

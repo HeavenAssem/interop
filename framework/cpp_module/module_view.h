@@ -14,7 +14,7 @@
 #include <declarations.h>
 
 
-namespace mosaic {
+namespace interop {
     class module_view {
         virtual const module_metadata & get_metadata() const = 0;
 

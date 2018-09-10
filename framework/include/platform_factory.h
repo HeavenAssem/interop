@@ -7,7 +7,7 @@
 
 #include <string_view>
 
-namespace mosaic {
+namespace interop {
     class platform_factory_t {
     public:
         virtual platform_ptr instantiate() = 0;
@@ -16,7 +16,7 @@ namespace mosaic {
 
     template <class Platform>
     class wrapped_platform final: public platform_factory_t {
-        static_assert(std::is_base_of<platform_t, Platform>::value, "platform must be derived from mosaic::platform");
+        static_assert(std::is_base_of<platform_t, Platform>::value, "platform must be derived from interop::platform");
     public:
         platform_ptr instantiate() override {
             return std::make_shared<Platform>();

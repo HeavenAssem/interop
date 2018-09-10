@@ -6,7 +6,7 @@
 
 #include <memory>
 
-namespace mosaic {
+namespace interop {
     class object_view;
     class function_view;
     class platform_function_t;

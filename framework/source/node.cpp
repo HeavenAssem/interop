@@ -19,7 +19,7 @@
 using namespace std;
 namespace fs = boost::filesystem;
 
-namespace mosaic {
+namespace interop {
 
     //std::unordered_map<std::string, std::shared_ptr<native_module_t>> node_t::global_scope {};
 
