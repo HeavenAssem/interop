@@ -82,6 +82,11 @@ namespace interop {
         explicit open_file_error(const std::string_view& what);
     };
 
+    class register_error: public error_t {
+    public:
+        explicit register_error(const std::string_view& what);
+    };
+
     class loading_error: public error_t {
     public:
         explicit loading_error(const std::string_view& what);

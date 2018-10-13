@@ -1,0 +1,27 @@
+#!/bin/bash
+
+ERROR="\e[31m"
+
+function log {
+    if [ $# -eq 1 ]
+    then
+        COLOR="\e[32m"  # green by default
+        TEXT=$1
+    elif [ $# -eq 2 ]
+    then
+        COLOR=$1
+        TEXT=$2
+    else
+        echo -e "${COLOR}[${LOG_PREFIX}\e[0m]: log was called with $# arguments"
+        exit -2
+    fi
+
+    echo -e "[${COLOR}${LOG_PREFIX}\e[0m]: ${TEXT}"
+}
+
+function check_is_as_user {
+    if [ "$(whoami)" != $1 ]; then
+        log ERROR "Script meant to be run as user \"$1\""
+        exit -1
+    fi
+}

@@ -67,12 +67,12 @@ namespace interop {
         }
     }
 
-    struct type_metadata {
+    struct type_metadata_t {
         type_enum type;
         std::size_t size;
     };
 
-    struct variable_metadata: type_metadata {
+    struct variable_metadata: type_metadata_t {
         std::string name;
         uint16_t shift;
     };

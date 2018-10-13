@@ -19,7 +19,7 @@ namespace interop {
         using base = base_module_t;
 
         shared_library  library;
-        version_t       mosaic_abi_version;
+        version_t       interop_abi_version;
 
     public:
         native_module_t(shared_library && library, const native_module_configuration_t &);

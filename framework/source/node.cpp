@@ -30,7 +30,7 @@ namespace interop {
             try {
                 load_native_module(native_module_configuration);
             } catch (error_t & e) {
-                mosaic_logger(error, e.what());
+                interop_logger(error, e.what());
             }
         }
 
@@ -48,7 +48,7 @@ namespace interop {
 
         // }
 
-        mosaic_logger(log, "created node '" + name + "'");
+        interop_logger(log, "created node '" + name + "'");
     }
 
     node_t::node_t(node_t && other)
@@ -91,7 +91,7 @@ namespace interop {
                 module_pointer->unload();
                 //global_scope.erase(module_name);
             } catch (error_t & e) {
-                mosaic_logger(log, string("error during forced unload: ") + e.what());
+                interop_logger(log, string("error during forced unload: ") + e.what());
             }
         }
     }
@@ -106,7 +106,7 @@ namespace interop {
         auto library_instance = shared_library(configuration.path.c_str());
         auto module = make_unique<native_module_t>(move(library_instance), configuration);
 
-        mosaic_logger(log, "registered native module '" + module->name() + "'");
+        interop_logger(log, "registered native module '" + module->name() + "'");
 
         local_scope[module->name()] = move(module);
         //global_scope[module->name()] = module;

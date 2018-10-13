@@ -15,5 +15,7 @@ namespace interop {
         std::vector<constructor_metadata>   constructors;
         std::vector<variable_metadata>      fields;
         std::vector<function_metadata>      methods;
+
+        explicit object_metadata(std::string name): name(std::move(name)) {}
     };
 }

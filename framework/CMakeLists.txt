@@ -22,6 +22,6 @@ include_directories(
         ${CMAKE_SOURCE_DIR}/common/include
 )
 
-add_library(mosaic_framework SHARED ${SOURCE_FILES} ${HEADER_FILES})
+add_library(interop_framework SHARED ${SOURCE_FILES} ${HEADER_FILES})
 
-target_link_libraries(mosaic_framework ${LIBRARIES})
+target_link_libraries(interop_framework ${LIBRARIES})

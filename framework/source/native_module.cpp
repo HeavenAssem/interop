@@ -20,22 +20,22 @@ using namespace std;
 namespace interop {
     namespace {
         version_t get_version(const shared_library & library) {
-            return *reinterpret_cast<version_t*>(library.symbol(MOSAIC_FRAMEWORK_API_VERSION_STR));
+            return *reinterpret_cast<version_t*>(library.symbol(INTEROP_FRAMEWORK_API_VERSION_STR));
         }
 
         module_metadata get_metadata(const shared_library & library) {
-            return convert_metadata_to_current(get_version(library), library.symbol(MOSAIC_MODULE_METADATA_STR));
+            return convert_metadata_to_current(get_version(library), library.symbol(INTEROP_MODULE_METADATA_STR));
         }
     }
 
     native_module_t::native_module_t(shared_library && _library, const native_module_configuration_t & configuration)
-        : mosaic_abi_version(get_version(_library))
+        : interop_abi_version(get_version(_library))
         , library(move(_library))
         //, node(node)
     {
         try {
             /** registration stage begin **/
-            auto register_module = reinterpret_cast<register_module_function>(library.symbol(MOSAIC_MODULE_REGISTER_STR));
+            auto register_module = reinterpret_cast<register_module_function>(library.symbol(INTEROP_MODULE_REGISTER_STR));
             register_module();
 
             metadata = interop::get_metadata(library);
@@ -55,10 +55,10 @@ namespace interop {
 
     void native_module_t::link(module_context & context) const {
         try {
-            auto initialize_module = reinterpret_cast<initialize_module_function>(library.symbol(MOSAIC_MODULE_INITIALIZE_STR));
+            auto initialize_module = reinterpret_cast<initialize_module_function>(library.symbol(INTEROP_MODULE_INITIALIZE_STR));
             initialize_module(context);
         } catch (symbol_loading_error & e) {
-            mosaic_logger(warning, e.what());
+            interop_logger(warning, e.what());
         }
     }
 
@@ -69,11 +69,11 @@ namespace interop {
 
     native_module_t::~native_module_t() noexcept {
         if (library) {
-            mosaic_logger(warning, "Module unload from destructor. Call unload() before destroying object.");
+            interop_logger(warning, "Module unload from destructor. Call unload() before destroying object.");
             try {
                 unload();
             } catch (error_t & e) {
-                mosaic_logger(error, e.what());
+                interop_logger(error, e.what());
             }
         }
     }

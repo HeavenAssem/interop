@@ -50,7 +50,7 @@ namespace interop {
                         modules.push_back(make_unique<platform_v8_module_t>(Isolate::New(create_params), module_configuration));
                     }
                 } catch (const module_loading_error & e) {
-                    mosaic_logger(error, e.what());
+                    interop_logger(error, e.what());
                 }
             }
 

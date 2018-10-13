@@ -1,0 +1,41 @@
+#!/bin/bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+LOG_PREFIX="INSTALL"
+. ${DIR}/common
+
+check_is_as_user "nobody"
+
+log "pacman existing packages update..."
+sudo pacman -Su --noconfirm
+log "pacman packages installation..."
+sudo pacman -S --noconfirm --needed \
+base-devel \
+bash-completion \
+binutils \
+boost \
+clang \
+cmake \
+gtest \
+make \
+gdb \
+git \
+vim \
+wget \
+yajl
+
+cd /tmp
+
+log "package-query installation..."
+git clone https://aur.archlinux.org/package-query.git
+cd package-query
+makepkg -si --noconfirm
+
+cd /tmp
+
+log "yaourt installation..."
+git clone https://aur.archlinux.org/yaourt.git
+cd yaourt
+makepkg -si --noconfirm
+
+log "done"

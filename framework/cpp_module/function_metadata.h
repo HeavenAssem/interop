@@ -12,7 +12,7 @@
 namespace interop {
     struct constructor_metadata {
         void * pointer;
-        std::vector<type_metadata> arguments;
+        std::vector<type_metadata_t> arguments;
     };
 
     struct destructor_metadata {
@@ -21,9 +21,10 @@ namespace interop {
 
     struct function_metadata {
         void * pointer = nullptr;
+        void * context = nullptr;
         std::string name;
-        std::vector<type_metadata> arguments;
-        type_metadata return_type;
+        std::vector<type_metadata_t> arguments;
+        type_metadata_t return_type;
 
         bool is_empty() const {
             return name.empty();

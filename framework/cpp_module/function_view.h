@@ -19,7 +19,7 @@ namespace interop {
         template <class R, class ... Args>
         class signature_checker {
             template <int index, class Arg>
-            static void check_args_types(const std::vector<type_metadata> & metadata) {
+            static void check_args_types(const std::vector<type_metadata_t> & metadata) {
                 const auto expected_type = metadata[index].type;
                 constexpr auto passed_type = enumerate_type<Arg>();
                 if (passed_type != expected_type) {
@@ -28,16 +28,16 @@ namespace interop {
             }
 
             template <int index, class Arg1, class Arg2, class ... _Args>
-            static void check_args_types(const std::vector<type_metadata> & metadata) {
+            static void check_args_types(const std::vector<type_metadata_t> & metadata) {
                 check_args_types<index, Arg1>(metadata);
                 check_args_types<index + 1, Arg2, _Args ...>(metadata);
             }
 
             template <int>
-            static void check_args_types(const std::vector<type_metadata> & metadata) {}
+            static void check_args_types(const std::vector<type_metadata_t> & metadata) {}
 
         public:
-            static void check_args(const std::vector<type_metadata> & metadata) {
+            static void check_args(const std::vector<type_metadata_t> & metadata) {
                 const auto argument_count = sizeof...(Args);
                 if (argument_count != metadata.size()) {
                     throw arguments_mismatch_error("argument count mismatch: expected: " + std::to_string(metadata.size()) + "; got: " + std::to_string(argument_count));
@@ -45,7 +45,7 @@ namespace interop {
                 check_args_types<0, Args ...>(metadata);
             }
 
-            static void check_return_type(const type_metadata & metadata) {
+            static void check_return_type(const type_metadata_t & metadata) {
                 if constexpr (!std::is_void<R>::value) {      // Allow to discard return value (when no return type specified on call - do not perform check).
                     const auto & expected_type = metadata.type;
                     const auto & passed_type = enumerate_type<R>();
@@ -100,7 +100,11 @@ namespace interop {
                     return reinterpret_cast<R (*)(void *, Args ...)>(metadata.pointer)(bound_object,
                                                                                        std::forward<Args>(args)...);
                 } else {
-                    return reinterpret_cast<R (*)(Args ...)>(metadata.pointer)(std::forward<Args>(args)...);
+                    if (metadata.context) {
+                        return reinterpret_cast<R (*)(void*, Args ...)>(metadata.pointer)(metadata.context, std::forward<Args>(args)...);
+                    } else {
+                        return reinterpret_cast<R (*)(Args ...)>(metadata.pointer)(std::forward<Args>(args)...);
+                    }
                 }
             } else {
                 assert(platform_function);

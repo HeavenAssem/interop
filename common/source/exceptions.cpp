@@ -44,6 +44,10 @@ namespace interop {
 
     }
 
+    register_error::register_error(const std::string_view & what) : error_t(what) {
+
+    }
+
     loading_error::loading_error(const string_view &what): error_t(what) {
 
     }

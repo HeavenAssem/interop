@@ -18,7 +18,7 @@ namespace interop {
     shared_library::shared_library(const std::string_view & path, const std::string_view & name) {
         this->handle = os::load_library(path);
         this->library_name = name.empty() ? boost::filesystem::path(path.data()).stem().string() : name.data();
-        mosaic_logger(log, "Loaded shared library \"" + this->library_name + "\" by path \"" + path.data() + "\"");
+        interop_logger(log, "Loaded shared library \"" + this->library_name + "\" by path \"" + path.data() + "\"");
     }
 
     shared_library::shared_library(shared_library && other) noexcept {
@@ -30,11 +30,11 @@ namespace interop {
 
     shared_library::~shared_library() {
         if (handle) {
-            mosaic_logger(warning, "Shared library unload from destructor. Call unload() before destroying object.");
+            interop_logger(warning, "Shared library unload from destructor. Call unload() before destroying object.");
             try {
                 unload();
             } catch (error_t & e) {
-                mosaic_logger(error, e.what());
+                interop_logger(error, e.what());
             }
         }
     }
@@ -53,7 +53,7 @@ namespace interop {
                 if (!global::Testing) {  // manual unload of shared library containing tests will cause SEGFAULT in GoogleTest
                     os::unload_library(handle);
                 }
-                mosaic_logger(log, "Unloaded shared library \"" + this->library_name + "\"");
+                interop_logger(log, "Unloaded shared library \"" + this->library_name + "\"");
                 reset();
             } catch (library_unloading_error &error) {
                 if (!library_name.empty()) {

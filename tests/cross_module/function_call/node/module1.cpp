@@ -51,11 +51,19 @@ public:
 };
 
 namespace interop {
-    void MOSAIC_MODULE_REGISTER() {
-        REGISTER_FUNCTION(hello_world)
-        REGISTER_FUNCTION(add)
-        REGISTER_FUNCTION(say_hello)
-        //REGISTER_MEMBER("member", &test::member_fn)
+    void INTEROP_MODULE_REGISTER() {
+        register_function("hello_world", hello_world);
+        register_function("add", add);
+        register_function("say_hello", say_hello);
+        register_function("non_capturing_lambda", [](int a){
+            return 8080 + a;
+        });
+
+        const int value = 552;
+        register_function("capturing_lambda", [value](int a){
+            return value + a;
+        });
+
         register_class<test, constructor<int>, constructor<double>>("test")
             .method<&test::member1>("member1")
             .method<&test::member2>("member2")

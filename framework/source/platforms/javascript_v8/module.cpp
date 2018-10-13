@@ -45,10 +45,10 @@ namespace interop {
                             .ToLocalChecked()
                                 ->Run(local_context).ToLocalChecked();
 
-                mosaic_logger(log, "Run JS script " + filename + ": " + (*String::Utf8Value(retVal)));
+                interop_logger(log, "Run JS script " + filename + ": " + (*String::Utf8Value(retVal)));
                 return true;
             } else {
-                mosaic_logger(error, "Run JS script " + filename + " failed: unable to open file");
+                interop_logger(error, "Run JS script " + filename + " failed: unable to open file");
                 return false;
             }
         };

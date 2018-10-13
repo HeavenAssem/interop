@@ -15,4 +15,4 @@ namespace interop {
     }
 }
 
-#define mosaic_logger(type, message) interop::logger::type(message, __PRETTY_FUNCTION__)
+#define interop_logger(type, message) interop::logger::type(message, __PRETTY_FUNCTION__)

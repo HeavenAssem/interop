@@ -56,7 +56,7 @@ namespace interop {
 
         lazy_sequence_t<string> walk(const string_view& path, const string_view& extension, walk_policy_e policy, entry_type_e entry_type) {
             DIR * dp;
-            mosaic_logger(log, "open directory: " + string(path));
+            interop_logger(log, "open directory: " + string(path));
             if ((dp = opendir(path.data())) == nullptr) {
                 auto error = read_errno();
                 throw interop::open_path_error(string("Failed to open directory by path \"") + path.data() + "\": " + error.data());
@@ -88,7 +88,7 @@ namespace interop {
 
                         if (policy == Recursive && is_directory) {
                             auto dir_path = base_path/entry->d_name;
-                            mosaic_logger(log, "open directory: " + dir_path.string());
+                            interop_logger(log, "open directory: " + dir_path.string());
                             dirs.push({ opendir(dir_path.c_str()), dir_path });
                         }
 

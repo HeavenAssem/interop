@@ -31,7 +31,7 @@ namespace interop {
     }
 
     void base_module_t::unload() {
-        mosaic_logger(log, "unload module '" + name() + "'");
+        interop_logger(log, "unload module '" + name() + "'");
 
         functions_cache.clear();
     }

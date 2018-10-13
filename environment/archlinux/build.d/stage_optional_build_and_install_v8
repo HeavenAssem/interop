@@ -1,0 +1,13 @@
+#!/bin/bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+LOG_PREFIX="INSTALL V8"
+. ${DIR}/common
+
+check_is_as_user "nobody"
+
+cd /tmp
+
+log "depot-tools installation..."
+git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+export PATH=`pwd`/depot_tools:"$PATH"

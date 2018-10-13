@@ -37,8 +37,8 @@ namespace interop {
     };
 
     extern "C" {
-        extern const version_t MOSAIC_FRAMEWORK_ABI_VERSION;
+        extern const version_t INTEROP_FRAMEWORK_ABI_VERSION;
     }
 }
 
-#define MOSAIC_DEFINE_CURRENT_ABI_VERSION const version_t MOSAIC_FRAMEWORK_ABI_VERSION { 0, 1, 0, 0 };
+#define INTEROP_DEFINE_CURRENT_ABI_VERSION const version_t INTEROP_FRAMEWORK_ABI_VERSION { 0, 1, 0, 0 };
