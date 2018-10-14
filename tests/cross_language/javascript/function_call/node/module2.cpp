@@ -9,25 +9,24 @@
 using namespace std;
 
 namespace interop {
-    void INTEROP_MODULE_REGISTER() {
+void INTEROP_MODULE_REGISTER() {}
 
-    }
+module_context_t * ctx;
 
-    module_context * ctx;
+void INTEROP_MODULE_INITIALIZE(module_context_t & context)
+{
+    printf("module 2 initialization\n");
 
-    void INTEROP_MODULE_INITIALIZE(module_context & context) {
-        printf("module 2 initialization\n");
-
-        ctx = &context;
-    }
+    ctx = &context;
 }
+} // namespace interop
 
 class interop_test: public ::testing::Test {};
 
-
 const auto other_module = "js.module";
 
-TEST_F(interop_test, call) {
+TEST_F(interop_test, call)
+{
     EXPECT_THROW(interop::ctx->get("not exists"), interop::module_lookup_error);
     auto & module = interop::ctx->get(other_module);
 

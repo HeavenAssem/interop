@@ -5,5 +5,5 @@
 #include "version.h"
 
 namespace interop {
-    INTEROP_DEFINE_CURRENT_ABI_VERSION
+INTEROP_DEFINE_CURRENT_ABI_VERSION
 }

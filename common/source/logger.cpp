@@ -8,45 +8,48 @@
 
 #include <iostream>
 
-
 using namespace std;
 
 using namespace rlutil;
 
-void print (const string_view & prefix, const string_view & message, const string_view & location, int color) {
+void print(const string_view & prefix, const string_view & message, const string_view & location,
+           int color)
+{
     setColor(color);
-    cout << prefix << ": " << "@" << location << ": " << message << endl;
+    cout << prefix << ": "
+         << "@" << location << ": " << message << endl;
     resetColor();
 }
 
 namespace interop {
-    namespace logger {
+namespace logger {
 
-        bool enabled = true;
+bool enabled = true;
 
-        void set_enabled(bool e) {
-            enabled = e;
-        }
+void set_enabled(bool e) { enabled = e; }
 
-        void log(const string_view & message, const string_view & location) {
-            if (!enabled) {
-                return;
-            }
-            print("<interop> log", message, location, GREY);
-        }
-
-        void warning(const string_view & message, const string_view & location) {
-            if (!enabled) {
-                return;
-            }
-            print("<interop> warning", message, location, YELLOW);
-        }
-
-        void error(const string_view & message, const string_view & location) {
-            if (!enabled) {
-                return;
-            }
-            print("<interop> error", message, location, RED);
-        }
+void log(const string_view & message, const string_view & location)
+{
+    if (!enabled) {
+        return;
     }
+    print("<interop> log", message, location, GREY);
 }
+
+void warning(const string_view & message, const string_view & location)
+{
+    if (!enabled) {
+        return;
+    }
+    print("<interop> warning", message, location, YELLOW);
+}
+
+void error(const string_view & message, const string_view & location)
+{
+    if (!enabled) {
+        return;
+    }
+    print("<interop> error", message, location, RED);
+}
+} // namespace logger
+} // namespace interop

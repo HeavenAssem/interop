@@ -5,17 +5,11 @@
 
 #include <functional>
 
-
-class lazy_sequence_end_t: public std::exception
-{
-    const char * what() const noexcept override
-    {
-        return "lazy sequence end";
-    }
+class lazy_sequence_end_t: public std::exception {
+    const char * what() const noexcept override { return "lazy sequence end"; }
 };
 
-class lazy_sequence_started_t: public std::exception
-{
+class lazy_sequence_started_t: public std::exception {
     const char * what() const noexcept override
     {
         return "lazy sequence already started. (begin should be called only once)";
@@ -25,29 +19,30 @@ class lazy_sequence_started_t: public std::exception
 template <class T>
 class lazy_sequence_t {
     std::function<T()> generator;
-    bool               started;
+    bool started;
 
-public:
+  public:
     class iterator_t {
         friend lazy_sequence_t;
 
-        lazy_sequence_t &  sequence;
-        T                  value;
-        bool               is_end;
+        lazy_sequence_t & sequence;
+        T value;
+        bool is_end;
 
         iterator_t(lazy_sequence_t & sequence)
-            : sequence(sequence)
+          : sequence(sequence)
         {
             ++(*this);
         }
 
         iterator_t(lazy_sequence_t & sequence, bool is_end)
-            : sequence(sequence)
-            , is_end(is_end)
+          : sequence(sequence)
+          , is_end(is_end)
         {}
 
-    public:
-        iterator_t & operator ++() {
+      public:
+        iterator_t & operator++()
+        {
             try {
                 value = sequence.generator();
             } catch (const lazy_sequence_end_t &) {
@@ -56,7 +51,8 @@ public:
             return *this;
         }
 
-        bool operator==(const iterator_t & other) const noexcept {
+        bool operator==(const iterator_t & other) const noexcept
+        {
             if (this == &other) {
                 return true;
             }
@@ -64,33 +60,27 @@ public:
             return is_end && other.is_end;
         }
 
-        bool operator!=(const iterator_t & other) const noexcept {
-            return !((*this) == other);
-        }
+        bool operator!=(const iterator_t & other) const noexcept { return !((*this) == other); }
 
-        T & operator * () noexcept {
-            return value;
-        }
+        T & operator*() noexcept { return value; }
     };
 
     lazy_sequence_t(std::function<T()> && generator)
-        : generator(std::move(generator))
-        , started(false)
+      : generator(std::move(generator))
+      , started(false)
     {}
 
     lazy_sequence_t(const lazy_sequence_t &) = default;
-    lazy_sequence_t(lazy_sequence_t &&) = default;
+    lazy_sequence_t(lazy_sequence_t &&)      = default;
 
-    iterator_t begin() {
+    iterator_t begin()
+    {
         if (started) {
             throw lazy_sequence_started_t();
         }
         started = true;
-        return { *this };
+        return {*this};
     }
 
-    iterator_t end() {
-        return { *this, true };
-    }
+    iterator_t end() { return {*this, true}; }
 };
-

@@ -2,20 +2,21 @@
 // Created by islam on 13.05.17.
 //
 
-#include <node.h>
-#include <logger.h>
-#include <global.h>
 #include <configuration.h>
+#include <global.h>
+#include <logger.h>
+#include <node.h>
 
 #include <gtest/gtest.h>
 
 using namespace std;
 
-int main(int argc, char **argv) {
+int main(int argc, char ** argv)
+{
     int c;
     string configPath;
 
-    while ( (c = getopt(argc, argv, "c:")) != -1) {
+    while ((c = getopt(argc, argv, "c:")) != -1) {
         //~ int this_option_optind = optind ? optind : 1;
         switch (c) {
         case 'c':

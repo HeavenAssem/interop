@@ -7,35 +7,35 @@
 
 #include <string>
 
-
 namespace interop {
-    /**
-     * @class shared_library
-     * @brief encapsulates shared library, manages its lifetime
-     * @attention non default - constructable; non copyable; movable
-     */
-    class shared_library {
-        library_handle  handle;
-        std::string     library_name;
-    public:
-        explicit shared_library(const std::string_view & path, const std::string_view & name = "");
+/**
+ * @class shared_library
+ * @brief encapsulates shared library, manages its lifetime
+ * @attention non default - constructable; non copyable; movable
+ */
+class shared_library {
+    library_handle handle;
+    std::string library_name;
 
-        shared_library(const shared_library &) = delete;
+  public:
+    explicit shared_library(const std::string_view & path, const std::string_view & name = "");
 
-        shared_library(shared_library &&) noexcept;
+    shared_library(const shared_library &) = delete;
 
-        ~shared_library();
+    shared_library(shared_library &&) noexcept;
 
-        library_symbol_handle symbol(const std::string_view & name) const;
+    ~shared_library();
 
-        const std::string & name() const;
+    library_symbol_handle symbol(const std::string_view & name) const;
 
-        void unload();
+    const std::string & name() const;
 
-        operator bool() const noexcept;
-        bool operator!() const noexcept;
+    void unload();
 
-    private:
-        void reset() noexcept;
-    };
-}
+    operator bool() const noexcept;
+    bool operator!() const noexcept;
+
+  private:
+    void reset() noexcept;
+};
+} // namespace interop

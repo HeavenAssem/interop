@@ -6,7 +6,6 @@
 
 // #include <dyncall.h>
 
-
 // namespace interop {
 //     void local_function_caller::push_arg(double arg) {
 //         if (cast_argument(arg))
@@ -74,7 +73,8 @@
 //     void * local_function_caller::vm = nullptr;
 //     uint32_t local_function_caller::count = 0;
 
-//     local_function_caller::local_function_caller(const function_metadata * metadata) : metadata(metadata), argument_index(0) {
+//     local_function_caller::local_function_caller(const function_metadata_t * metadata) :
+//     metadata(metadata), argument_index(0) {
 //         if (!vm) {
 //             vm = dcNewCallVM(4096);
 //             dcMode(static_cast<DCCallVM *>(vm), DC_CALL_C_DEFAULT);
@@ -91,7 +91,8 @@
 //     template <class Fn>
 //     auto call(Fn call_function, uint8_t & index, void * vm, void * pointer) {
 //         index = 0;
-//         if constexpr (std::is_same<decltype(call_function(static_cast<DCCallVM *>(vm), pointer)), void>::value) {
+//         if constexpr (std::is_same<decltype(call_function(static_cast<DCCallVM *>(vm), pointer)),
+//         void>::value) {
 //             call_function(static_cast<DCCallVM *>(vm), pointer);
 //             dcReset(static_cast<DCCallVM *>(vm));
 //         }

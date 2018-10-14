@@ -4,10 +4,4 @@
 
 #include "local_module_context.h"
 
-
-
-
-namespace interop {
-
-
-}
+namespace interop {}

@@ -4,7 +4,4 @@
 
 #include "scope.h"
 
-
-namespace scope {
-
-}
+namespace scope {}

@@ -10,29 +10,26 @@
 using namespace std;
 
 namespace interop {
-    base_module_t::base_module_t()
-    {
+base_module_t::base_module_t() {}
 
+const module_metadata_t & base_module_t::get_metadata() const { return metadata; }
+
+function_ptr_t base_module_t::function(const string & name)
+{
+    auto & function_ptr = functions_cache[name];
+    if (!function_ptr) {
+        function_ptr = fetch_function(name);
     }
 
-    const module_metadata & base_module_t::get_metadata() const {
-        return metadata;
-    }
+    assert(function_ptr);
 
-    function_ptr_t base_module_t::function(const string & name) {
-        auto & function_ptr = functions_cache[name];
-        if (!function_ptr) {
-            function_ptr = fetch_function(name);
-        }
-
-        assert(function_ptr);
-
-        return function_ptr;
-    }
-
-    void base_module_t::unload() {
-        interop_logger(log, "unload module '" + name() + "'");
-
-        functions_cache.clear();
-    }
+    return function_ptr;
 }
+
+void base_module_t::unload()
+{
+    interop_logger(log, "unload module '" + name() + "'");
+
+    functions_cache.clear();
+}
+} // namespace interop

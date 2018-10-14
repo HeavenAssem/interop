@@ -9,18 +9,17 @@
 using namespace std;
 
 namespace interop {
-    void INTEROP_MODULE_REGISTER() {
+void INTEROP_MODULE_REGISTER() {}
 
-    }
+module_context_t * ctx;
 
-    module_context * ctx;
+void INTEROP_MODULE_INITIALIZE(module_context_t & context)
+{
+    printf("module 2 initialization\n");
 
-    void INTEROP_MODULE_INITIALIZE(module_context & context) {
-        printf("module 2 initialization\n");
-
-        ctx = &context;
-    }
+    ctx = &context;
 }
+} // namespace interop
 
 class interop_test: public ::testing::Test {};
 
@@ -28,9 +27,10 @@ typedef void (*hello_world_t)(int n, float k, double a);
 
 const auto other_module = "module1";
 
-TEST_F(interop_test, call) {
+TEST_F(interop_test, call)
+{
     EXPECT_THROW(interop::ctx->get("not exists"), interop::module_lookup_error);
-    auto&& other_module = interop::ctx->get("module1");
+    auto && other_module = interop::ctx->get("module1");
 
     other_module.function("hello_world")->call(15, 4.5f, 7.0);
     other_module.function("hello_world")->call(8, 2.5f, 100.8);
@@ -43,7 +43,8 @@ TEST_F(interop_test, call) {
     EXPECT_EQ(560, other_module.function("capturing_lambda")->call<int>(8));
 }
 
-TEST_F(interop_test, object_create_fail) {
+TEST_F(interop_test, object_create_fail)
+{
     auto & module = interop::ctx->get(other_module);
 
     EXPECT_THROW(module.create("not exists"), interop::type_lookup_error);

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+
+CLANG_FORMAT_CMD="clang-format -i"
+FILE_NAME_REGEXP=".*\.(cpp|h)$"
+FILTER_BY_EXTENSION="grep -E $FILE_NAME_REGEXP"
+
+if [ "$1" = "all" ]; then
+    find ${DIR} -path ${DIR}/external -prune -o -type f | $FILTER_BY_EXTENSION | xargs $CLANG_FORMAT_CMD
+else
+    git diff --name-only | $FILTER_BY_EXTENSION | xargs $CLANG_FORMAT_CMD
+fi

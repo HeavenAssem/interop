@@ -5,5 +5,5 @@
 #pragma once
 
 namespace global {
-    extern bool Testing;
+extern bool Testing;
 }

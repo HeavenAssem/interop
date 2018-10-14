@@ -4,13 +4,9 @@
 
 #pragma once
 
-
 #include "definitions.h"
 
 #include <cerrno>
 #include <cstring>
 
-
-std::string_view read_errno() {
-    return strerror(errno);
-}
+std::string_view read_errno() { return strerror(errno); }

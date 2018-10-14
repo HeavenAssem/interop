@@ -8,30 +8,25 @@
 
 #include <vector>
 
-
 namespace interop {
-    struct constructor_metadata {
-        void * pointer;
-        std::vector<type_metadata_t> arguments;
-    };
+struct constructor_metadata_t {
+    void * pointer;
+    std::vector<type_metadata_t> arguments;
+};
 
-    struct destructor_metadata {
-        void * pointer;
-    };
+struct destructor_metadata_t {
+    void * pointer;
+};
 
-    struct function_metadata {
-        void * pointer = nullptr;
-        void * context = nullptr;
-        std::string name;
-        std::vector<type_metadata_t> arguments;
-        type_metadata_t return_type;
+struct function_metadata_t {
+    void * pointer = nullptr;
+    void * context = nullptr;
+    std::string name;
+    std::vector<type_metadata_t> arguments;
+    type_metadata_t return_type;
 
-        bool is_empty() const {
-            return name.empty();
-        }
+    bool is_empty() const { return name.empty(); }
 
-        bool is_native() const {
-            return !is_empty() && pointer != nullptr;
-        }
-    };
-}
+    bool is_native() const { return !is_empty() && pointer != nullptr; }
+};
+} // namespace interop

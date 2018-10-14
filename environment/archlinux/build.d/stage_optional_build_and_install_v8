@@ -1,13 +1,56 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 LOG_PREFIX="INSTALL V8"
 . ${DIR}/common
 
-check_is_as_user "nobody"
+check_is_as_user "developer"
+
+# log "dependencies installation..."
+# yaourt -S --noconfirm --needed \
+# icu \
+# readline \
+# clang \
+# clang-tools-extra \
+# git \
+# ninja \
+# python2 \
+# python2-colorama \
+# python2-lazy-object-proxy \
+# python2-pylint \
+# python2-singledispatch \
+# python2-wrapt \
+# wget \
+# ncurses5-compat-libs
 
 cd /tmp
 
-log "depot-tools installation..."
-git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
-export PATH=`pwd`/depot_tools:"$PATH"
+# for some unknown fucking reason yaourt doesn't know shit about this package
+# and thus, I have to install it manually!
+# git clone https://aur-dev.archlinux.org/libtinfo.git
+# cd libtinfo
+# makepkg -Acs
+# sudo pacman -U libtinfo*.tar.xz --noconfirm
+
+# log "depot-tools installation..."
+# git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+# export PATH=`pwd`/depot_tools:"$PATH"
+
+# trick /usr/bin/env to think that python2 is default
+# mkdir bin
+# ln -s /usr/bin/python2 `pwd`/bin/python
+# ln -s /usr/bin/python2-config `pwd`/bin/python-config
+# export PATH=`pwd`/bin:$PATH
+
+git clone https://aur.archlinux.org/v8.git
+cd v8
+sed -i -e 's/pkgver=.*/pkgver=7.0.302/g' PKGBUILD
+makepkg -Acs --noconfirm
+sudo pacman -U *.tar.xz --noconfirm
+
+# log "V8 fetching..."
+# fetch v8
+# cd v8
+
+# tools/dev/v8gen.py x64.release
+# ninja -C out.gn/x64.release

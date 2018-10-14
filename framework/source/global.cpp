@@ -4,7 +4,6 @@
 
 #include "global.h"
 
-
 namespace global {
-    bool Testing = false;
+bool Testing = false;
 }

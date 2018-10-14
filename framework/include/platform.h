@@ -8,21 +8,21 @@
 
 #include <string>
 
-
 namespace interop {
-    class platform_function_t {
-    public:
-        virtual ~platform_function_t() = default;
+class platform_function_t {
+  public:
+    virtual ~platform_function_t() = default;
 
-        virtual val_t call(arg_pack_t && args) = 0;
-    };
+    virtual val_t call(arg_pack_t && args) = 0;
+};
 
-    class platform_t {
-    public:
-        virtual ~platform_t() = default;
+class platform_t {
+  public:
+    virtual ~platform_t() = default;
 
-        virtual std::vector<std::unique_ptr<base_module_t>> initialize(const platform_configuration_t &) = 0;
-        virtual void run() = 0;
-        virtual void dispose() = 0;
-    };
-}
+    virtual std::vector<std::unique_ptr<base_module_t>>
+    initialize(const platform_configuration_t &) = 0;
+    virtual void run()                           = 0;
+    virtual void dispose()                       = 0;
+};
+} // namespace interop
