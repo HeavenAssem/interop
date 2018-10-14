@@ -1,7 +1,7 @@
-# MosaicFramework
+# interop
 Cross - language, modular, event driven framework for application development
 
-Mosaic is a application architecture framework that aims to provide an easy interoperability on multiple levels:
+interop is a application architecture framework that aims to provide an easy interoperability on multiple levels:
  * Language level: ability to write different parts of system using different languages
  * Architecture level: ability to choose how to run different parts of system
  * Data level: ability to choose data format for serialization/deserialization (if used)
