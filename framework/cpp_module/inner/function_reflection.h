@@ -59,9 +59,9 @@ struct functor_reflector_t {
         using reflected_t   = signature_reflector_t<R, Args...>;
         static std::unordered_map<std::string, cpp_functor_t> storage;
 
-        auto insertion_result = storage.emplace(name, std::move(functor));
+        auto [iter, inserted] = storage.emplace(name, std::move(functor));
 
-        if (!insertion_result.second) {
+        if (!inserted) {
             throw register_error_t("name collision: " + name);
         }
 
@@ -71,8 +71,11 @@ struct functor_reflector_t {
         };
 
         return {
-            reinterpret_cast<void *>(proxy), &*insertion_result.first,   std::move(name),
-            reflected_t::arguments(),        reflected_t::return_type(),
+            reinterpret_cast<void *>(proxy),
+            &iter->second,
+            std::move(name),
+            reflected_t::arguments(),
+            reflected_t::return_type(),
         };
     }
 };

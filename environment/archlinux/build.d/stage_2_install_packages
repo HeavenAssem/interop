@@ -20,6 +20,7 @@ gtest \
 make \
 gdb \
 git \
+valgrind \
 vim \
 wget \
 yajl
