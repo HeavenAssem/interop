@@ -5,7 +5,7 @@
 #pragma once
 
 #include "definitions.h"
-#include "inner/class_reflection.h"
+#include "internals/class_reflection.h"
 #include "module_definitions.h"
 
 #include <exceptions.h>

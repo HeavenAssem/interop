@@ -1,6 +1,6 @@
 #pragma once
 
-#include "inner/function_reflection.h"
+#include "internals/function_reflection.h"
 #include "object_metadata.h"
 
 namespace interop {

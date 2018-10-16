@@ -2,7 +2,7 @@
 
 #include "exceptions.h"
 #include "function_metadata.h"
-#include "inner/common.h"
+#include "internals/common.h"
 
 #include <functional>
 
