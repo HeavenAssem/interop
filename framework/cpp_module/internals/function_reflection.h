@@ -19,7 +19,8 @@ struct arguments_reflector_t {
     static std::vector<type_metadata_t> arguments()
     {
         std::vector<type_metadata_t> arguments_metadata;
-        meta::describe_types<Args...>(arguments_metadata);
+        arguments_metadata.reserve(sizeof...(Args));
+        fold_m(meta::describe_type<Args>(arguments_metadata));
         return std::move(arguments_metadata);
     }
 };

@@ -7,7 +7,7 @@
 #include <string>
 
 namespace interop {
-enum class type_enum : uint8_t {
+enum class type_enum_e : uint8_t {
     TE_UNSUPPORTED,
     TE_VOID,
     TE_BOOL,
@@ -25,17 +25,17 @@ enum class type_enum : uint8_t {
 namespace details {
 template <typename Ty>
 struct map_enum {
-    static constexpr type_enum type = type_enum::TE_UNSUPPORTED;
+    static constexpr type_enum_e type = type_enum_e::TE_UNSUPPORTED;
 };
 template <typename Ty>
 struct map_enum<Ty *> {
-    static constexpr type_enum type = type_enum::TE_POINTER;
+    static constexpr type_enum_e type = type_enum_e::TE_POINTER;
 };
 
 #define MAP_ENUM(T, E)                                                                             \
     template <>                                                                                    \
     struct map_enum<T> {                                                                           \
-        static constexpr type_enum type = type_enum::E;                                            \
+        static constexpr type_enum_e type = type_enum_e::E;                                        \
     };
 
 MAP_ENUM(void, TE_VOID)
@@ -53,45 +53,45 @@ MAP_ENUM(std::string, TE_STRING) // <- TODO: change: will break abi compatibilit
 } // namespace details
 
 template <typename T>
-constexpr type_enum enumerate_type()
+constexpr type_enum_e enumerate_type()
 {
     constexpr auto type = details::map_enum<typename std::decay<T>::type>::type;
-    static_assert(type != type_enum::TE_UNSUPPORTED, "Unsupported type");
+    static_assert(type != type_enum_e::TE_UNSUPPORTED, "Unsupported type");
     return type;
 }
 
-inline std::string to_string(type_enum type)
+inline std::string to_string(type_enum_e type)
 {
     switch (type) {
-    case type_enum::TE_UNSUPPORTED:
+    case type_enum_e::TE_UNSUPPORTED:
         return "<unsupported>";
-    case type_enum::TE_VOID:
+    case type_enum_e::TE_VOID:
         return "void";
-    case type_enum::TE_BOOL:
+    case type_enum_e::TE_BOOL:
         return "bool";
-    case type_enum::TE_CHAR:
+    case type_enum_e::TE_CHAR:
         return "char";
-    case type_enum::TE_SHORT:
+    case type_enum_e::TE_SHORT:
         return "short";
-    case type_enum::TE_FLOAT:
+    case type_enum_e::TE_FLOAT:
         return "float";
-    case type_enum::TE_DOUBLE:
+    case type_enum_e::TE_DOUBLE:
         return "double";
-    case type_enum::TE_INT:
+    case type_enum_e::TE_INT:
         return "int";
-    case type_enum::TE_LONG:
+    case type_enum_e::TE_LONG:
         return "long";
-    case type_enum::TE_LONG_LONG:
+    case type_enum_e::TE_LONG_LONG:
         return "long long";
-    case type_enum::TE_POINTER:
+    case type_enum_e::TE_POINTER:
         return "pointer";
-    case type_enum::TE_STRING:
+    case type_enum_e::TE_STRING:
         return "string";
     }
 }
 
 struct type_metadata_t {
-    type_enum type;
+    type_enum_e type;
     std::size_t size;
 };
 

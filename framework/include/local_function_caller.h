@@ -70,47 +70,47 @@ class local_function_caller: public function_caller {
         const auto & argument_metadata = metadata->arguments[argument_index];
         if (argument_metadata.type != enumerate_type<T>()) {
             switch (argument_metadata.type) {
-            case type_enum::TE_BOOL:
+            case type_enum_e::TE_BOOL:
                 if constexpr (std::is_convertible<T, bool>::value) {
                     push_arg(static_cast<bool>(arg));
                 }
                 break;
-            case type_enum::TE_CHAR:
+            case type_enum_e::TE_CHAR:
                 if constexpr (std::is_convertible<T, char>::value) {
                     push_arg(static_cast<char>(arg));
                 }
                 break;
-            case type_enum::TE_SHORT:
+            case type_enum_e::TE_SHORT:
                 if constexpr (std::is_convertible<T, short>::value) {
                     push_arg(static_cast<short>(arg));
                 }
                 break;
-            case type_enum::TE_FLOAT:
+            case type_enum_e::TE_FLOAT:
                 if constexpr (std::is_convertible<T, float>::value) {
                     push_arg(static_cast<float>(arg));
                 }
                 break;
-            case type_enum::TE_DOUBLE:
+            case type_enum_e::TE_DOUBLE:
                 if constexpr (std::is_convertible<T, double>::value) {
                     push_arg(static_cast<double>(arg));
                 }
                 break;
-            case type_enum::TE_INT:
+            case type_enum_e::TE_INT:
                 if constexpr (std::is_convertible<T, int>::value) {
                     push_arg(static_cast<int>(arg));
                 }
                 break;
-            case type_enum::TE_LONG:
+            case type_enum_e::TE_LONG:
                 if constexpr (std::is_convertible<T, long>::value) {
                     push_arg(static_cast<long>(arg));
                 }
                 break;
-            case type_enum::TE_LONG_LONG:
+            case type_enum_e::TE_LONG_LONG:
                 if constexpr (std::is_convertible<T, long long>::value) {
                     push_arg(static_cast<long long>(arg));
                 }
                 break;
-            case type_enum::TE_POINTER:
+            case type_enum_e::TE_POINTER:
                 if constexpr (std::is_convertible<T, void *>::value) {
                     push_arg(static_cast<void *>(arg));
                 }

@@ -40,8 +40,7 @@ struct constructor_reflector_t {
 template <class Class, class... Constructors>
 void register_constructors(object_metadata_t & metadata)
 {
-    ((void)constructor_reflector_t<Class>::template reflect<Constructors>(metadata.constructors),
-     ...);
+    fold_m(constructor_reflector_t<Class>::template reflect<Constructors>(metadata.constructors));
 }
 
 template <class Class>
