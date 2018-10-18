@@ -26,7 +26,6 @@ struct function_metadata_t {
     type_metadata_t return_type;
 
     bool is_empty() const { return name.empty(); }
-
     bool is_native() const { return !is_empty() && pointer != nullptr; }
 };
 } // namespace interop

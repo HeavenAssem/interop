@@ -7,7 +7,7 @@
                 {
                     "name": "js.module",
                     "paths": [
-                        "node/module.js"
+                        "modules/cross_language.javascript.function_call.module.js"
                     ]
                 }
             ]
@@ -16,7 +16,7 @@
     "native_modules": [
         {
             "name": "cpp.module",
-            "path": "node/cross_language.javascript.function_call.module2.so"
+            "path": "modules/cross_language.javascript.function_call.module_cpp.so"
         }
     ]
 }

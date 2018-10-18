@@ -16,6 +16,8 @@ endif(NOT CMAKE_BUILD_TYPE)
 option(JS_V8_SUPPORT "Build with JavaScript support (V8 engine dependency)" ON)
 option(JS_NODE_SUPPORT "Build with NodeJS support" OFF)
 
+enable_testing()
+
 add_subdirectory(common)
 add_subdirectory(os_abstraction)
 add_subdirectory(framework)

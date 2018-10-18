@@ -58,9 +58,9 @@ void INTEROP_MODULE_REGISTER()
     register_function("capturing_lambda", [value](int a) { return value + a; });
 
     register_class<test, constructor<int>, constructor<double>>("test")
-        .method<&test::member1>("member1")
-        .method<&test::member2>("member2")
-        .method<&test::member3>("member3")
-        .method<&test::get>("get");
+        .member<&test::member1>("member1")
+        .member<&test::member2>("member2")
+        .member<&test::member3>("member3")
+        .member<&test::get>("get");
 }
 } // namespace interop

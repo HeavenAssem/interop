@@ -49,11 +49,11 @@ void register_destructor(object_metadata_t & metadata)
     metadata.destructor.pointer = (void *)destructor_proxy_t<Class>::call;
 }
 
-template <typename cpp_method_t, cpp_method_t>
-class method_reflector_t;
+template <typename cpp_member_t, cpp_member_t>
+class member_reflector_t;
 
 template <typename R, typename C, typename... Args, R (C::*cpp_method_ptr)(Args...)>
-class method_reflector_t<R (C::*)(Args...), cpp_method_ptr> {
+class member_reflector_t<R (C::*)(Args...), cpp_method_ptr> {
     using reflected_t = function_reflection::signature_reflector_t<R, Args...>;
     typedef R (C::*cpp_method_t)(Args...);
 
@@ -66,6 +66,8 @@ class method_reflector_t<R (C::*)(Args...), cpp_method_ptr> {
   public:
     using class_t = C;
 
+    static constexpr bool is_method = true;
+
     static function_metadata_t reflect(std::string name)
     {
         return {
@@ -75,6 +77,38 @@ class method_reflector_t<R (C::*)(Args...), cpp_method_ptr> {
             reflected_t::arguments(),
             reflected_t::return_type(),
         };
+    }
+};
+
+template <typename T, typename C, T C::*cpp_member_ptr>
+class member_reflector_t<T C::*, cpp_member_ptr> {
+    typedef const T & (*cpp_member_getter_t)(const C *);
+    typedef void (*cpp_member_setter_t)(C *, T &&);
+
+    static const T & getter(const void * object)
+    {
+        return reinterpret_cast<const C *>(object)->*cpp_member_ptr;
+    }
+
+    static void setter(void * object, T && value)
+    {
+        reinterpret_cast<C *>(object)->*cpp_member_ptr = std::move(value);
+    }
+
+  public:
+    using class_t = C;
+
+    static constexpr bool is_method = false;
+
+    static field_metadata_t reflect(std::string name)
+    {
+        field_metadata_t res;
+        res.type   = enumerate_type<T>();
+        res.name   = std::move(name);
+        res.size   = sizeof(T);
+        res.getter = static_cast<void *>(getter);
+        res.setter = static_cast<void *>(setter);
+        return res;
     }
 };
 
@@ -94,14 +128,18 @@ class class_reflector_t {
         }
     }
 
-    template <auto cpp_method_ptr>
-    auto & method(std::string name)
+    template <auto cpp_member_ptr>
+    auto & member(std::string name)
     {
-        using reflector_t = method_reflector_t<decltype(cpp_method_ptr), cpp_method_ptr>;
+        using reflector_t = member_reflector_t<decltype(cpp_member_ptr), cpp_member_ptr>;
         static_assert(std::is_same<Class, typename reflector_t::class_t>::value,
-                      "Trying to add method from different class");
+                      "Trying to add member from different class");
 
-        metadata.methods.push_back(reflector_t::reflect(std::move(name)));
+        if constexpr (reflector_t::is_method) {
+            metadata.methods.push_back(reflector_t::reflect(std::move(name)));
+        } else {
+            metadata.fields.push_back(reflector_t::reflect(std::move(name)));
+        }
         return *this;
     }
 };

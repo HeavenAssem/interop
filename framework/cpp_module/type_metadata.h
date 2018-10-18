@@ -95,8 +95,9 @@ struct type_metadata_t {
     std::size_t size;
 };
 
-struct variable_metadata_t: type_metadata_t {
+struct field_metadata_t: type_metadata_t {
     std::string name;
-    uint16_t shift;
+    void * getter;
+    void * setter;
 };
 } // namespace interop

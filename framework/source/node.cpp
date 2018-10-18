@@ -32,14 +32,14 @@ node_t::node_t(const node_configuration_t & configuration)
             load_native_module(native_module_configuration);
         } catch (error_t & e) {
             interop_logger(error, e.what());
+            throw;
         }
     }
 
     for (const auto & id_platform_configuration : configuration.platform_configurations) {
         const auto & [id, platform_configuration] = id_platform_configuration;
 
-        auto & platform = platforms[id];
-        platform        = instantiate_platform(id);
+        auto & platform = platforms[id] = instantiate_platform(id);
         for (auto & module : platform->initialize(platform_configuration)) {
             local_scope[module->name()] = move(module);
         }

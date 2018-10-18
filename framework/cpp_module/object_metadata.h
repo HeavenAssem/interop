@@ -12,7 +12,7 @@ struct object_metadata_t {
     std::string name;
     destructor_metadata_t destructor;
     std::vector<constructor_metadata_t> constructors;
-    std::vector<variable_metadata_t> fields;
+    std::vector<field_metadata_t> fields;
     std::vector<function_metadata_t> methods;
 
     explicit object_metadata_t(std::string name)
