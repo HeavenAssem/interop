@@ -56,8 +56,8 @@ platform_v8_module_t::platform_v8_module_t(Isolate * isolate,
                     ->Run(local_context)
                     .ToLocalChecked();
 
-            // interop_logger(log, "Run JS script " + filename + ": " +
-            // (*String::Utf8Value(retVal)));
+            interop_logger(log, "Run JS script " + filename + ": " +
+                                    (*String::Utf8Value(isolate, retVal)));
             return true;
         } else {
             interop_logger(error, "Run JS script " + filename + " failed: unable to open file");
@@ -98,12 +98,18 @@ void platform_v8_module_t::link(node_t & node) const
 
     auto global = local_context->Global();
 
+    global->Set(String::NewFromUtf8(isolate, "lol"), Object::New(isolate));
+
     node.for_each_module([&](const module_ptr & module) {
         if (module.get() == this) {
             return Continue;
         }
 
         const auto metadata = module->get_metadata();
+
+        // global_template->Set(
+        //     String::NewFromUtf8(isolate, "get"),
+        //     FunctionTemplate::New(isolate, [](const FunctionCallbackInfo<Value> & info) {}));
 
         for (const auto & function_metadata_t : metadata.functions) {
         }

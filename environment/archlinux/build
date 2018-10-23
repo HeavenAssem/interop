@@ -2,4 +2,4 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
-docker build -t interop_devenv_archlinux $DIR
+docker build -t islamboziev/interop_devenv_archlinux:latest $DIR

@@ -3,4 +3,4 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"/../../
 OPTIONS="-it --rm --user=developer -v $DIR:$DIR -w $DIR -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix  --cap-add=SYS_PTRACE --security-opt seccomp=unconfined"
 
-docker run $OPTIONS interop_devenv_archlinux:gui /bin/bash
+docker run $OPTIONS islamboziev/interop_devenv_archlinux:latest /bin/bash
