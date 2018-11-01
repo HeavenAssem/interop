@@ -25,8 +25,8 @@ class module_view_t {
             metadata.types.begin(), metadata.types.end(),
             [&](const object_metadata_t & o_metadata) { return name == o_metadata.name; });
         if (it == metadata.types.end()) {
-            throw type_lookup_error("type with name \"" + name + "\" not found in module \"" +
-                                    metadata.name + "\"");
+            throw type_lookup_error_t("type with name \"" + name + "\" not found in module \"" +
+                                      metadata.name + "\"");
         }
         return *it;
     }
@@ -39,19 +39,20 @@ class module_view_t {
     {
         auto & metadata = get_object_metadata(name);
 
-        auto it = std::find_if(metadata.constructors.begin(), metadata.constructors.end(),
-                               [](const constructor_metadata_t & c_metadata) {
-                                   try {
-                                       detail::signature_checker<void, Args...>::check_args(
-                                           c_metadata.arguments);
-                                   } catch (const arguments_mismatch_error &) {
-                                       return false;
-                                   }
-                                   return true;
-                               });
+        auto it =
+            std::find_if(metadata.constructors.begin(), metadata.constructors.end(),
+                         [&name](const constructor_metadata_t & c_metadata) {
+                             try {
+                                 internals::strict_call_validator_t<void, Args...>::check_args(
+                                     name, c_metadata.arguments);
+                             } catch (const arguments_mismatch_error_t &) {
+                                 return false;
+                             }
+                             return true;
+                         });
 
         if (it == metadata.constructors.end()) {
-            throw function_lookup_error("no matching constructor in type " + name);
+            throw function_lookup_error_t("no matching constructor in type " + name);
         }
 
         void * object =

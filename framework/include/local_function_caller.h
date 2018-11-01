@@ -63,8 +63,8 @@ class local_function_caller: public function_caller {
     bool cast_argument(T arg)
     {
         if (metadata->arguments.size() <= argument_index) {
-            throw function_call_error("while calling function \"" + metadata->name +
-                                      "\": too many arguments");
+            throw function_call_error_t("while calling function \"" + metadata->name +
+                                        "\": too many arguments");
         }
 
         const auto & argument_metadata = metadata->arguments[argument_index];

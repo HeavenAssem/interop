@@ -9,9 +9,12 @@
 
 #include <logger.h>
 #include <os.h>
+#include <utils/string.h>
 
 #include <fstream>
 #include <sstream>
+
+#include <iostream>
 
 using namespace std;
 using namespace v8;
@@ -78,7 +81,7 @@ platform_v8_module_t::platform_v8_module_t(Isolate * isolate,
     }
 
     if (!ok) {
-        throw module_loading_error(
+        throw module_loading_error_t(
             "Unable to load JS module: couldn't open any of specified files");
     }
 }
@@ -107,11 +110,30 @@ void platform_v8_module_t::link(node_t & node) const
 
         const auto metadata = module->get_metadata();
 
-        // global_template->Set(
-        //     String::NewFromUtf8(isolate, "get"),
-        //     FunctionTemplate::New(isolate, [](const FunctionCallbackInfo<Value> & info) {}));
+        auto current_object = global;
+        auto path           = utils::split_rx(metadata.name, "\\.");
 
-        for (const auto & function_metadata_t : metadata.functions) {
+        for (const auto & name : path) {
+            auto new_object = Object::New(isolate);
+            cout << "add object: " << name << endl;
+            current_object->Set(
+                String::NewFromUtf8(isolate, name.data(), String::kNormalString, name.size()),
+                new_object);
+            current_object = new_object;
+        }
+
+        for (const auto & function_metadata : metadata.functions) {
+            const auto & name = function_metadata.name;
+
+            // AccessorNameGetterCallback cb = [](Local<Name> property,
+            //                                    const PropertyCallbackInfo<Value> & info) {
+
+            // };
+
+            // current_object->SetAccessor(
+            //     local_context,
+            //     String::NewFromUtf8(isolate, name.data(), String::kNormalString, name.size()),
+            //     cb);
         }
         return Continue;
     });
@@ -140,12 +162,12 @@ function_ptr_t platform_v8_module_t::fetch_function(const std::string & name)
 
         meta.name = name;
 
-        return make_shared<function_view>(
+        return make_shared<function_view_t>(
             make_shared<platform_function_v8_t>(Handle<Function>::Cast(value), *this), meta);
     }
 
-    throw function_lookup_error("function '" + name + "' was not found in module '" + this->name() +
-                                "'");
+    throw function_lookup_error_t("function '" + name + "' was not found in module '" +
+                                  this->name() + "'");
 }
 
 const string & platform_v8_module_t::name() const { return metadata.name; }

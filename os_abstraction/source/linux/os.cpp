@@ -23,13 +23,13 @@ namespace os {
 library_handle load_library(const string_view & path)
 {
     if (path.empty()) {
-        throw interop::library_loading_error("Failed to load library: empty path.");
+        throw interop::library_loading_error_t("Failed to load library: empty path.");
     }
 
     auto handle = dlopen(path.data(), RTLD_LAZY);
     if (handle == NULL) {
-        throw interop::library_loading_error(string("Failed to load library by path: \"") +
-                                             path.data() + "\"\nError: " + dlerror());
+        throw interop::library_loading_error_t(string("Failed to load library by path: \"") +
+                                               path.data() + "\"\nError: " + dlerror());
     }
     return handle;
 }
@@ -38,8 +38,8 @@ library_handle load_symbol(library_handle library, const string_view & name)
 {
     auto pointer = dlsym(library, name.data());
     if (pointer == NULL) {
-        throw interop::symbol_loading_error(string("Failed to load symbol with name: \"") +
-                                            name.data() + "\"\nError: " + dlerror());
+        throw interop::symbol_loading_error_t(string("Failed to load symbol with name: \"") +
+                                              name.data() + "\"\nError: " + dlerror());
     }
     return pointer;
 }
@@ -47,8 +47,8 @@ library_handle load_symbol(library_handle library, const string_view & name)
 void unload_library(library_handle library)
 {
     if (dlclose(library) != 0) {
-        throw interop::library_unloading_error(string("Failed to unload library.") +
-                                               "\"\nError: " + dlerror());
+        throw interop::library_unloading_error_t(string("Failed to unload library.") +
+                                                 "\"\nError: " + dlerror());
     }
 }
 
@@ -59,8 +59,8 @@ lazy_sequence_t<string> walk(const string_view & path, const string_view & exten
     interop_logger(log, "open directory: " + string(path));
     if ((dp = opendir(path.data())) == nullptr) {
         auto error = read_errno();
-        throw interop::open_path_error(string("Failed to open directory by path \"") + path.data() +
-                                       "\": " + error.data());
+        throw interop::open_path_error_t(string("Failed to open directory by path \"") +
+                                         path.data() + "\": " + error.data());
     }
 
     const auto file      = static_cast<bool>(entry_type & File);

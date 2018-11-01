@@ -16,7 +16,7 @@ platform_registrator::platform_registrator(const std::string & id, platform_fact
 {
     auto & stored_platform = platforms[id];
     if (stored_platform) {
-        throw platform_loading_error("name collision: platform  " + id + " already registered");
+        throw platform_loading_error_t("name collision: platform  " + id + " already registered");
     }
 
     stored_platform = move(platform);

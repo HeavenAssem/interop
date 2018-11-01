@@ -1,12 +1,6 @@
-//
-// Created by islam on 24.12.17.
-//
-
 #pragma once
 
-#include <any>
-#include <memory>
-#include <vector>
+#include "../cpp_module/declarations.h"
 
 namespace interop {
 class module_view_t;
@@ -22,7 +16,4 @@ using module_ptr            = std::unique_ptr<base_module_t>;
 using platform_ptr          = std::shared_ptr<platform_t>;
 using platform_factory_ptr  = std::shared_ptr<platform_factory_t>;
 using platform_function_ptr = std::shared_ptr<platform_function_t>;
-
-using val_t      = std::any;
-using arg_pack_t = std::vector<val_t>;
 } // namespace interop

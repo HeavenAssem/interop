@@ -46,13 +46,13 @@ class platform_v8_t final: public platform_t {
         for (const auto & module_configuration : configuration.module_configurations) {
             try {
                 if (!names.insert(module_configuration.name).second) {
-                    throw module_loading_error("Module with name '" + module_configuration.name +
-                                               "' already exists");
+                    throw module_loading_error_t("Module with name '" + module_configuration.name +
+                                                 "' already exists");
                 } else {
                     modules.push_back(make_unique<platform_v8_module_t>(Isolate::New(create_params),
                                                                         module_configuration));
                 }
-            } catch (const module_loading_error & e) {
+            } catch (const module_loading_error_t & e) {
                 interop_logger(error, e.what());
             }
         }

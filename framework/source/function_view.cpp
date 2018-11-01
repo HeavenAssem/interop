@@ -8,28 +8,28 @@
 using namespace std;
 
 namespace interop {
-function_view::function_view(const function_metadata_t & metadata)
+function_view_t::function_view_t(const function_metadata_t & metadata)
   : metadata(metadata)
   , bound_object(nullptr)
   , platform_function(nullptr)
 {
-    assert(!metadata.is_empty() && "create function_view from empty metadata");
+    assert(!metadata.is_empty() && "create function_view_t from empty metadata");
 }
 
-function_view::function_view(object_view_t & object, const function_metadata_t & metadata)
-  : function_view(metadata)
+function_view_t::function_view_t(object_view_t & object, const function_metadata_t & metadata)
+  : function_view_t(metadata)
 {
     bound_object = object.get_pointer();
 }
 
-function_view::function_view(const platform_function_ptr & function,
-                             const function_metadata_t & metadata)
-  : function_view(metadata)
+function_view_t::function_view_t(const platform_function_ptr & function,
+                                 const function_metadata_t & metadata)
+  : function_view_t(metadata)
 {
     platform_function = function;
 }
 
-std::any function_view::non_native_call(arg_pack_t && args)
+std::any function_view_t::non_native_call(arg_pack_t args)
 {
     assert(platform_function);
 

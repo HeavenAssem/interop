@@ -10,4 +10,8 @@ function add(a, b) {
     return a + b;
 }
 
+function check_modules() {
+    return cpp.module != undefined;
+}
+
 "OK";

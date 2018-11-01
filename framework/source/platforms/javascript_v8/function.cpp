@@ -13,7 +13,13 @@ namespace {
 /*-----------<< utility >>------------*/
 val_t from_v8(Isolate * isolate, const Local<Value> & value)
 {
-    if (value->IsInt32()) { // TODO: find a better solution
+    if (value.IsEmpty()) {
+        return {};
+    }
+
+    if (value->IsBoolean()) {
+        return value->ToBoolean(isolate)->Value();
+    } else if (value->IsInt32()) { // TODO: find a better solution
         return value->ToInt32(isolate)->Value();
     } else if (value->IsString()) {
         return string(*String::Utf8Value(isolate, value->ToString(isolate)));
@@ -28,7 +34,9 @@ Local<Value> to_v8(const val_t & value, Isolate * isolate)
 {
     const auto & type = value.type();
 
-    if (type == typeid(int)) {
+    if (type == typeid(bool)) {
+        return Boolean::New(isolate, any_cast<bool>(value));
+    } else if (type == typeid(int)) {
         return Int32::New(isolate, any_cast<int>(value));
     } else if (type == typeid(float)) {
         return Number::New(isolate, any_cast<float>(value));

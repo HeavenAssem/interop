@@ -49,7 +49,7 @@ void register_destructor(object_metadata_t & metadata)
     metadata.destructor.pointer = (void *)destructor_proxy_t<Class>::call;
 }
 
-template <typename cpp_member_t, cpp_member_t>
+template <typename M, M>
 class member_reflector_t;
 
 template <typename R, typename C, typename... Args, R (C::*cpp_method_ptr)(Args...)>

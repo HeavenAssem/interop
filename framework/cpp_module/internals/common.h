@@ -1,3 +1,5 @@
+#pragma once
+
 #include "type_metadata.h"
 
 #include <vector>
@@ -15,6 +17,11 @@ static_assert(false, "Pre C++11 standards are not supported");
 namespace interop {
 namespace internals {
 namespace meta {
+
+template <typename... Ts>
+struct forbidden_instantiation {
+    static_assert(sizeof...(Ts) < 0, "forbidden instantiation");
+};
 
 template <class T>
 type_metadata_t describe_type()

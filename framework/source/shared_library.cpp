@@ -62,7 +62,7 @@ void shared_library::unload()
             }
             interop_logger(log, "Unloaded shared library \"" + this->library_name + "\"");
             reset();
-        } catch (library_unloading_error & error) {
+        } catch (library_unloading_error_t & error) {
             if (!library_name.empty()) {
                 error.append("\nLibrary name: " + library_name);
             }

@@ -23,34 +23,34 @@ class error_t: std::exception {
     void append(const std::string_view & message);
 };
 
-class arguments_mismatch_error: public error_t {
+class arguments_mismatch_error_t: public error_t {
   public:
-    explicit arguments_mismatch_error(std::string what);
+    explicit arguments_mismatch_error_t(std::string what);
 };
 
-class function_call_error: public error_t {
+class function_call_error_t: public error_t {
   public:
-    explicit function_call_error(std::string what);
+    explicit function_call_error_t(std::string what);
 };
 
-class lookup_error: public error_t {
+class lookup_error_t: public error_t {
   public:
-    explicit lookup_error(std::string what);
+    explicit lookup_error_t(std::string what);
 };
 
-class module_lookup_error: public lookup_error {
+class module_lookup_error_t: public lookup_error_t {
   public:
-    explicit module_lookup_error(std::string what);
+    explicit module_lookup_error_t(std::string what);
 };
 
-class function_lookup_error: public lookup_error {
+class function_lookup_error_t: public lookup_error_t {
   public:
-    explicit function_lookup_error(std::string what);
+    explicit function_lookup_error_t(std::string what);
 };
 
-class type_lookup_error: public lookup_error {
+class type_lookup_error_t: public lookup_error_t {
   public:
-    explicit type_lookup_error(std::string what);
+    explicit type_lookup_error_t(std::string what);
 };
 
 class not_implemented: public error_t {
@@ -58,29 +58,29 @@ class not_implemented: public error_t {
     explicit not_implemented(std::string what);
 };
 
-class open_error: public error_t {
+class open_error_t: public error_t {
   public:
-    explicit open_error(std::string what);
+    explicit open_error_t(std::string what);
 };
 
-class validation_error: public error_t {
+class validation_error_t: public error_t {
   public:
-    explicit validation_error(std::string what);
+    explicit validation_error_t(std::string what);
 };
 
-class module_validation_error: public validation_error {
+class module_validation_error_t: public validation_error_t {
   public:
-    explicit module_validation_error(std::string what);
+    explicit module_validation_error_t(std::string what);
 };
 
-class open_path_error: public open_error {
+class open_path_error_t: public open_error_t {
   public:
-    explicit open_path_error(std::string what);
+    explicit open_path_error_t(std::string what);
 };
 
-class open_file_error: public open_error {
+class open_file_error_t: public open_error_t {
   public:
-    explicit open_file_error(std::string what);
+    explicit open_file_error_t(std::string what);
 };
 
 class register_error_t: public error_t {
@@ -88,38 +88,41 @@ class register_error_t: public error_t {
     explicit register_error_t(std::string what);
 };
 
-class loading_error: public error_t {
+class loading_error_t: public error_t {
   public:
-    explicit loading_error(std::string what);
+    explicit loading_error_t(std::string what);
 };
 
-class node_loading_error: public loading_error {
+class node_loading_error_t: public loading_error_t {
   public:
-    explicit node_loading_error(std::string what);
+    explicit node_loading_error_t(std::string what);
 };
 
-class module_loading_error: public loading_error {
+class module_loading_error_t: public loading_error_t {
   public:
-    explicit module_loading_error(std::string what);
+    explicit module_loading_error_t(std::string what);
 };
 
-class library_loading_error: public loading_error {
+class library_loading_error_t: public loading_error_t {
   public:
-    explicit library_loading_error(std::string what);
+    explicit library_loading_error_t(std::string what);
 };
 
-class symbol_loading_error: public loading_error {
+class symbol_loading_error_t: public loading_error_t {
   public:
-    explicit symbol_loading_error(std::string what);
+    explicit symbol_loading_error_t(std::string what);
 };
 
-class library_unloading_error: public loading_error {
+class library_unloading_error_t: public loading_error_t {
   public:
-    explicit library_unloading_error(std::string what);
+    explicit library_unloading_error_t(std::string what);
 };
 
-class platform_loading_error: public loading_error {
-  public:
-    explicit platform_loading_error(std::string what);
+class platform_loading_error_t: public loading_error_t {
+    using loading_error_t::loading_error_t;
+};
+
+class type_mismatch_error_t: public error_t {
+    using error_t::error_t;
 };
 } // namespace interop

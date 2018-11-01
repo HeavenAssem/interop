@@ -2,7 +2,8 @@
 // Created by islam on 13.05.17.
 //
 
-#include <interop.h>
+#include "module1.h"
+
 #include <iostream>
 
 void hello_world(int n, float k, double a)
@@ -15,36 +16,34 @@ int add(int a, int b) { return a + b; }
 
 const char * say_hello() { return "say hello yourself!"; }
 
-class test {
-    int b;
+test::test(int a)
+  : b(a)
+{
+    std::cout << "test object " << this << ": constructor int called" << std::endl;
+}
 
-  public:
-    explicit test(int a)
-      : b(a)
-    {
-        std::cout << "test object " << this << ": constructor int called" << std::endl;
-    }
+test::test(double a)
+  : b(static_cast<int>(a))
+{
+    std::cout << "test object " << this << ": constructor double called" << std::endl;
+}
 
-    explicit test(double a)
-      : b(static_cast<int>(a))
-    {
-        std::cout << "test object " << this << ": constructor double called" << std::endl;
-    }
+void test::member1() {}
 
-    void member1() {}
+double test::member2(int arg) {
+    std::cout << "member2 invoked! b is: " << b << "; object: " << this << std::endl;
+    return 1.5 * arg;
+}
 
-    double member2(int arg) { return 1.5 * arg; }
+double test::member3(float arg1, double arg2) { return arg2 + arg1; }
 
-    double member3(float arg1, double arg2) { return arg2 + arg1; }
+int test::get()
+{
+    std::cout << "get invoked! b is: " << b << "; object: " << this << std::endl;
+    return b;
+}
 
-    int get()
-    {
-        std::cout << "get invoked! b is: " << b << "; object: " << this << std::endl;
-        return b;
-    }
-
-    ~test() { std::cout << "test object " << this << ": destructor called" << std::endl; }
-};
+test::~test() { std::cout << "test object " << this << ": destructor called" << std::endl; }
 
 namespace interop {
 void INTEROP_MODULE_REGISTER()

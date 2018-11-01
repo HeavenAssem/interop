@@ -16,7 +16,7 @@ namespace os {
  * @brief: loads dynamic library (.dll for windows, .so for unix)
  * @param: path: path to .so or .dll file
  * @returns: handle (base address) of loaded library
- * @throws: interop::library_loading_error if loading failed
+ * @throws: interop::library_loading_error_t if loading failed
  */
 library_handle load_library(const std::string_view & path);
 
@@ -25,14 +25,14 @@ library_handle load_library(const std::string_view & path);
  * @param: library: handle (base address) of loaded library
  * @param: name: name of symbol to load from library
  * @returns: pointer to symbol
- * @throws: interop::symbol_loading_error if loading failed
+ * @throws: interop::symbol_loading_error_t if loading failed
  */
 library_symbol_handle load_symbol(library_handle library, const std::string_view & name);
 
 /**
  * @brief: unloads dynamic library from address space (os - dependent)
  * @param: library: handle (base address) of loaded library to be unloaded
- * @throws: interop::library_unloading_error if unloading failed
+ * @throws: interop::library_unloading_error_t if unloading failed
  */
 void unload_library(library_handle library);
 
@@ -51,7 +51,7 @@ enum walk_policy_e : uint8_t { NonRecursive, Recursive };
  * @param: policy: walk mode: recursive or not [optional, default: not recursive]
  * @param: entry_type: entry type filter mask [optional, default: File]
  * @returns: vector of items names
- * @throws: interop::open_path_error if couldn't open path
+ * @throws: interop::open_path_error_t if couldn't open path
  */
 lazy_sequence_t<std::string> walk(const std::string_view & path,
                                   const std::string_view & extension = "",

@@ -18,7 +18,7 @@ node_configuration_t load_configuration(string && filename)
         ifstream config_file(filename);
 
         if (!config_file.is_open()) {
-            throw open_file_error("unable to open configuration file: " + filename);
+            throw open_file_error_t("unable to open configuration file: " + filename);
         }
 
         Json::CharReaderBuilder builder;
@@ -32,7 +32,7 @@ node_configuration_t load_configuration(string && filename)
 
         const auto & platforms = root.get("platforms", Json::objectValue);
         if (!platforms.isObject()) {
-            throw validation_error("invalid JSON config: 'platforms' must be object");
+            throw validation_error_t("invalid JSON config: 'platforms' must be object");
         }
 
         configuration.platform_configurations.reserve(platforms.size());
@@ -48,7 +48,7 @@ node_configuration_t load_configuration(string && filename)
 
             const auto & modules = value.get("modules", Json::arrayValue);
             if (!modules.isArray()) {
-                throw validation_error("invalid JSON config: 'modules' must be array");
+                throw validation_error_t("invalid JSON config: 'modules' must be array");
             }
 
             for (const auto & module : modules) {
@@ -59,7 +59,7 @@ node_configuration_t load_configuration(string && filename)
 
                 const auto & paths = module.get("paths", Json::arrayValue);
                 if (!paths.isArray()) {
-                    throw validation_error("invalid JSON config: 'paths' must be array");
+                    throw validation_error_t("invalid JSON config: 'paths' must be array");
                 }
 
                 for (const auto & path : paths) {
@@ -70,7 +70,7 @@ node_configuration_t load_configuration(string && filename)
 
         const auto & native_modules = root.get("native_modules", Json::arrayValue);
         if (!native_modules.isArray()) {
-            throw validation_error("invalid JSON config: 'native_modules' must be array");
+            throw validation_error_t("invalid JSON config: 'native_modules' must be array");
         }
 
         configuration.native_module_configurations.reserve(native_modules.size());

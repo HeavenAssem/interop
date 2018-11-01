@@ -53,8 +53,8 @@ native_module_t::native_module_t(shared_library && _library,
         validate_metadata();
         /** registration stage end **/
     } catch (const error_t & error) {
-        throw module_loading_error("unable to load module from native library '" + library.name() +
-                                   "': " + error.what());
+        throw module_loading_error_t("unable to load module from native library '" +
+                                     library.name() + "': " + error.what());
     }
 }
 
@@ -64,7 +64,7 @@ void native_module_t::link(node_t & node) const
         auto initialize_module = reinterpret_cast<initialize_module_function>(
             library.symbol(INTEROP_MODULE_INITIALIZE_STR));
         initialize_module(node);
-    } catch (symbol_loading_error & e) {
+    } catch (symbol_loading_error_t & e) {
         interop_logger(warning, e.what());
     }
 }
@@ -99,7 +99,7 @@ const std::string & native_module_t::name() const { return metadata.name; }
 void native_module_t::validate_metadata() const
 {
     if (metadata.name.empty()) {
-        throw module_validation_error("module name is empty");
+        throw module_validation_error_t("module name is empty");
     }
 }
 
@@ -112,10 +112,10 @@ function_ptr_t native_module_t::fetch_function(const std::string & name)
         find_if(metadata.functions.begin(), metadata.functions.end(),
                 [&](const function_metadata_t & fn_metadata) { return name == fn_metadata.name; });
     if (it == metadata.functions.end()) {
-        throw function_lookup_error("function with name \"" + name + "\" not found in module " +
-                                    metadata.name);
+        throw function_lookup_error_t("function with name \"" + name + "\" not found in module " +
+                                      metadata.name);
     }
 
-    return make_shared<function_view>(*it);
+    return make_shared<function_view_t>(*it);
 }
 } // namespace interop

@@ -59,7 +59,7 @@ module_view_t & node_t::get(const std::string & name)
     try {
         return *local_scope.at(name);
     } catch (const out_of_range &) {
-        throw module_lookup_error("module with name '" + name + "' was not registered");
+        throw module_lookup_error_t("module with name '" + name + "' was not registered");
     }
 }
 
