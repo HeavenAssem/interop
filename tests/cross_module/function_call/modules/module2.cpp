@@ -37,7 +37,7 @@ TEST_F(interop_test, call)
 
     EXPECT_EQ(10, module.create("test", 10)->function("get")->call<int>());
     EXPECT_EQ(18, module.create("test", 18.78)->function("get")->call<int>());
-    // FIXME: EXPECT_EQ(1.5, module.create("test", 0)->function("member2")->call<double>(1));
+    EXPECT_EQ(1.5, module.create("test", 0)->function("member2")->call<double>(1));
     EXPECT_EQ(24, module.function("add")->call<int>(10, 14));
     EXPECT_STREQ("say hello yourself!", module.function("say_hello")->call<const char *>());
     EXPECT_EQ(8086, module.function("non_capturing_lambda")->call<int>(6));

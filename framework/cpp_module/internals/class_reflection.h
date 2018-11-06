@@ -57,10 +57,10 @@ class member_reflector_t<R (C::*)(Args...), cpp_method_ptr> {
     using reflected_t = function_reflection::signature_reflector_t<R, Args...>;
     typedef R (C::*cpp_method_t)(Args...);
 
-    static R c_function(void * object, Args &&... args)
+    static R c_function(void * object, Args... args)
     {
         auto obj = reinterpret_cast<C *>(object);
-        return (obj->*cpp_method_ptr)(std::forward<Args>(args)...);
+        return (obj->*cpp_method_ptr)(args...);
     }
 
   public:
