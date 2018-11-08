@@ -133,7 +133,7 @@ class class_reflector_t {
     {
         using reflector_t = member_reflector_t<decltype(cpp_member_ptr), cpp_member_ptr>;
         static_assert(std::is_same<Class, typename reflector_t::class_t>::value,
-                      "Trying to add member from different class");
+                      "Trying to add member from a different class");
 
         if constexpr (reflector_t::is_method) {
             metadata.methods.push_back(reflector_t::reflect(std::move(name)));
