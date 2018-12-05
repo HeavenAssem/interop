@@ -35,15 +35,15 @@ Local<Value> to_v8(const val_t & value, Isolate * isolate)
     const auto & type = value.type();
 
     if (type == typeid(bool)) {
-        return Boolean::New(isolate, any_cast<bool>(value));
+        return Boolean::New(isolate, value.as<bool>());
     } else if (type == typeid(int)) {
-        return Int32::New(isolate, any_cast<int>(value));
+        return Int32::New(isolate, value.as<int>());
     } else if (type == typeid(float)) {
-        return Number::New(isolate, any_cast<float>(value));
+        return Number::New(isolate, value.as<float>());
     } else if (type == typeid(double)) {
-        return Number::New(isolate, any_cast<double>(value));
+        return Number::New(isolate, value.as<double>());
     } else if (type == typeid(string)) {
-        return String::NewFromUtf8(isolate, any_cast<string>(value).c_str(), NewStringType::kNormal)
+        return String::NewFromUtf8(isolate, value.as<string>().c_str(), NewStringType::kNormal)
             .ToLocalChecked();
     } else {
         return Undefined(isolate);

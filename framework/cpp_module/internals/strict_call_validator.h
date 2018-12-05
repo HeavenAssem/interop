@@ -2,6 +2,7 @@
 
 #include "exceptions.h"
 #include "function_metadata.h"
+#include "type_subsystem/mappings.h"
 
 namespace interop {
 namespace internals {
@@ -14,7 +15,7 @@ class strict_call_validator_t {
                                  const std::vector<type_metadata_t> & metadata)
     {
         const auto expected_type   = metadata[index].type;
-        constexpr auto passed_type = enumerate_type<Arg>();
+        constexpr auto passed_type = type_subsystem::enumerate_type<Arg>();
         if (passed_type != expected_type) {
             throw arguments_mismatch_error_t(
                 "at function " + name +
@@ -53,7 +54,7 @@ class strict_call_validator_t {
         if constexpr (!std::is_void<R>::value) { // Allow to discard return value (when no return
                                                  // type specified on call - do not perform check).
             const auto & expected_type = metadata.type;
-            const auto & passed_type   = enumerate_type<R>();
+            const auto & passed_type   = type_subsystem::enumerate_type<R>();
             if (passed_type != expected_type) {
                 throw function_call_error_t(
                     "at function " + name +

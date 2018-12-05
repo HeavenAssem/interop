@@ -44,6 +44,14 @@ TEST_F(interop_test, call)
     EXPECT_EQ(560, module.function("capturing_lambda")->call<int>(8));
 }
 
+TEST_F(interop_test, ffi_call)
+{
+    auto && module = interop::ctx->get("module1");
+
+    module.create("test", 11)->function("get")->ffi_call();
+    // EXPECT_EQ(10, );
+}
+
 TEST_F(interop_test, object_create_fail)
 {
     auto & module = interop::ctx->get(other_module);
@@ -55,6 +63,7 @@ TEST_F(interop_test, object_create_fail)
 
 class test_view {
     interop::object_ptr object;
+
   public:
     explicit test_view(interop::object_ptr obj)
       : object(std::move(obj))

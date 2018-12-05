@@ -5,6 +5,7 @@
 
 #include <functional>
 
+namespace interop {
 class lazy_sequence_end_t: public std::exception {
     const char * what() const noexcept override { return "lazy sequence end"; }
 };
@@ -84,3 +85,4 @@ class lazy_sequence_t {
 
     iterator_t end() { return {*this, true}; }
 };
+} // namespace interop

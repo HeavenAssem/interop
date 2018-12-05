@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.4)
 file(GLOB_RECURSE HEADER_FILES include/*.h cpp_module/*.h)
 AUX_SOURCE_DIRECTORY(source SOURCE_FILES)
 
-set(LIBRARIES os_abstraction jsoncpp boost_system boost_filesystem)
+set(LIBRARIES os_abstraction jsoncpp boost_system boost_filesystem ffi)
 
 if(JS_V8_SUPPORT)
     AUX_SOURCE_DIRECTORY(source/platforms/javascript_v8 SOURCE_FILES)

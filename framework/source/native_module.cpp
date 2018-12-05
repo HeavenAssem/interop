@@ -104,7 +104,11 @@ void native_module_t::validate_metadata() const
 }
 
 void native_module_t::listen(const std::string_view & module_name, std::function<void()> && handler)
-{}
+{
+    std::ignore = module_name;
+    std::ignore = handler;
+    throw not_implemented("native_module_t::listen");
+}
 
 function_ptr_t native_module_t::fetch_function(const std::string & name)
 {

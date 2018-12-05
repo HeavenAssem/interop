@@ -9,7 +9,6 @@
 
 #include "internals/strict_call_validator.h"
 
-#include <any>
 #include <cassert>
 #include <exceptions.h>
 #include <memory>
@@ -19,8 +18,10 @@
 namespace interop {
 
 /**
- * @details: framework should be aware of every instance of function_view_t to be able to re-check
- * all calls if metadata changes therefore, it is non - copyable. To store function_view_t use
+ * @details: framework should be aware of every instance of function_view_t to
+ * be able to re-check
+ * all calls if metadata changes therefore, it is non - copyable. To store
+ * function_view_t use
  * function_ptr.
  */
 class function_view_t {
@@ -34,6 +35,8 @@ class function_view_t {
     function_view_t(object_view_t & object, const function_metadata_t & metadata);
     function_view_t(const platform_function_ptr & function, const function_metadata_t & metadata);
     function_view_t(const function_view_t &) = delete;
+
+    val_t ffi_call(arg_pack_t = {}); // TODO: make const
 
     /**
      * @brief: Fast, strict call. No implicit type casting.
@@ -65,12 +68,7 @@ class function_view_t {
                 non_native_call(arg_pack_t{std::forward<Args>(args)...});
                 return;
             } else {
-                auto return_value = non_native_call(arg_pack_t{std::forward<Args>(args)...});
-                if (return_value.type() != typeid(R)) {
-                    throw interop::type_mismatch_error_t(
-                        "return type mismatch"); // TODO: improve error message
-                }
-                return std::any_cast<R>(return_value);
+                return non_native_call(arg_pack_t{std::forward<Args>(args)...}).as<R>();
             }
         }
     }
@@ -85,8 +83,9 @@ class function_view_t {
     struct imitator_t<R (C::*)(Args...)> {
         function_view_t & function_view;
 
-        inline R operator()(Args... args) {
-            //std::cout << "!!!: " << sizeof...(Args) << std::endl;
+        inline R operator()(Args... args)
+        {
+            // std::cout << "!!!: " << sizeof...(Args) << std::endl;
             auto r = function_view.call<R>(args...);
             std::cout << "!!!: " << r << std::endl;
             return r;
@@ -107,6 +106,6 @@ class function_view_t {
     }
 
   private:
-    std::any non_native_call(arg_pack_t args);
+    val_t non_native_call(arg_pack_t args);
 };
 } // namespace interop

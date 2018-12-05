@@ -7,7 +7,7 @@ LOG_PREFIX="INSTALL"
 check_is_as_user "developer"
 
 log "pacman existing packages update..."
-sudo pacman -Su --noconfirm
+sudo pacman -Syu --noconfirm
 log "pacman packages installation..."
 sudo pacman -S --noconfirm --needed \
 base-devel \
@@ -17,6 +17,7 @@ boost \
 clang \
 cmake \
 gtest \
+libffi \
 make \
 gdb \
 git \
@@ -24,6 +25,10 @@ valgrind \
 vim \
 wget \
 yajl
+
+# a small trickery with libffi header paths
+# because no one seems to care about them being fucked up
+sudo ln -s /usr/lib/libffi-*/include/*.h /usr/include/
 
 cd /tmp
 

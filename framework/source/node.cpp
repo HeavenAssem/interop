@@ -52,7 +52,9 @@ node_t::node_t(const node_configuration_t & configuration)
     interop_logger(log, "created node '" + name + "'");
 }
 
-node_t::node_t(node_t && other) {}
+node_t::node_t(node_t &&) {
+    throw not_implemented("node_t::move ctor");
+}
 
 module_view_t & node_t::get(const std::string & name)
 {
@@ -75,6 +77,7 @@ void node_t::unload(bool forced)
             auto & module_pointer = it->second;
 
             module_pointer->unload();
+            std::ignore = module_name; //FIXME: do something!
             // global_scope.erase(module_name);
         }
     }
@@ -88,6 +91,7 @@ void node_t::forced_unload() noexcept
 
         try {
             module_pointer->unload();
+            std::ignore = module_name; //FIXME: do something!
             // global_scope.erase(module_name);
         } catch (error_t & e) {
             interop_logger(log, string("error during forced unload: ") + e.what());

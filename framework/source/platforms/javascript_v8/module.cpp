@@ -125,6 +125,8 @@ void platform_v8_module_t::link(node_t & node) const
         for (const auto & function_metadata : metadata.functions) {
             const auto & name = function_metadata.name;
 
+            std::ignore = name;  // FIXME: do something!
+
             // AccessorNameGetterCallback cb = [](Local<Name> property,
             //                                    const PropertyCallbackInfo<Value> & info) {
 
@@ -141,7 +143,11 @@ void platform_v8_module_t::link(node_t & node) const
 
 void platform_v8_module_t::listen(const std::string_view & module_name,
                                   std::function<void()> && handler)
-{}
+{
+    std::ignore = module_name;
+    std::ignore = handler;
+    throw not_implemented("platform_v8_module_t::listen");
+}
 
 function_ptr_t platform_v8_module_t::fetch_function(const std::string & name)
 {

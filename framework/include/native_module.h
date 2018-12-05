@@ -10,13 +10,13 @@
 
 namespace interop {
 class module_context_t;
-class native_module_configuration_t;
+struct native_module_configuration_t;
 
 class native_module_t: public base_module_t {
     using base = base_module_t;
 
-    shared_library library;
     version_t interop_abi_version;
+    shared_library library;
 
   public:
     native_module_t(shared_library && library, const native_module_configuration_t &);

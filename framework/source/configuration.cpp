@@ -77,8 +77,8 @@ node_configuration_t load_configuration(string && filename)
 
         for (const auto & native_module : native_modules) {
             configuration.native_module_configurations.push_back(
-                {.name = native_module.get("name", "").asString(),
-                 .path = native_module.get("path", "").asString()});
+                {native_module.get("name", "").asString(),
+                 native_module.get("path", "").asString()});
         }
     }
 

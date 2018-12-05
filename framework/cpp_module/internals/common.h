@@ -1,6 +1,7 @@
 #pragma once
 
 #include "type_metadata.h"
+#include "type_subsystem/mappings.h"
 
 #include <vector>
 
@@ -26,13 +27,13 @@ struct forbidden_instantiation {
 template <class T>
 type_metadata_t describe_type()
 {
-    return {enumerate_type<T>(), sizeof(T)};
+    return {type_subsystem::enumerate_type<T>(), sizeof(T)};
 }
 
 template <>
 type_metadata_t describe_type<void>()
 {
-    return {enumerate_type<void>(), 0};
+    return {type_subsystem::enumerate_type<void>(), 0};
 }
 
 template <class T>
