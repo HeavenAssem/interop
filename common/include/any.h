@@ -97,7 +97,7 @@ struct malloc_allocator_t {
  */
 template <size_t MinStaticCapacity = 0, class Allocator = malloc_allocator_t>
 class any_basic_t {
-    constexpr static size_t get_additional_soo_memory_size()
+    constexpr static size_t get_additional_in_place_memory_size()
     {
         return std::max(sizeof(void *), MinStaticCapacity) - sizeof(void *);
     }
@@ -107,7 +107,7 @@ class any_basic_t {
         // this struct: we need pointer and flag
         struct {
             void * memory;
-            uint8_t _additional_soo_memory[get_additional_soo_memory_size()];
+            uint8_t _additional_in_place_memory[get_additional_in_place_memory_size()];
             bool _;
         } on_heap;
 
@@ -115,7 +115,7 @@ class any_basic_t {
         struct {
             uint8_t memory[sizeof on_heap - 1];
             bool _;
-        } soo;
+        } in_place;
 
         // Flag is last byte
         struct {
@@ -152,7 +152,7 @@ class any_basic_t {
         inner.memory.is_dynamic = true;
     }
 
-    inline void init_soo() { inner.memory.is_dynamic = false; }
+    inline void init_in_place() { inner.memory.is_dynamic = false; }
 
     inline void copy(const void * object, std::size_t size)
     {
@@ -160,10 +160,10 @@ class any_basic_t {
         wrapped_type->copy(inner.on_heap.memory, object);
     }
 
-    inline void copy_soo(const void * object)
+    inline void copy_in_place(const void * object)
     {
-        init_soo();
-        wrapped_type->copy(inner.soo.memory, object);
+        init_in_place();
+        wrapped_type->copy(inner.in_place.memory, object);
     }
 
     inline void move(void * object, std::size_t size)
@@ -172,10 +172,10 @@ class any_basic_t {
         wrapped_type->move(inner.on_heap.memory, object);
     }
 
-    inline void move_soo(void * object) noexcept
+    inline void move_in_place(void * object) noexcept
     {
-        init_soo();
-        wrapped_type->move(inner.soo.memory, object);
+        init_in_place();
+        wrapped_type->move(inner.in_place.memory, object);
     }
 
     inline void set(void * data) noexcept
@@ -184,10 +184,10 @@ class any_basic_t {
         inner.memory.is_dynamic = true;
     }
 
-    inline void set_soo(const void * object, size_t size) noexcept
+    inline void set_in_place(const void * object, size_t size) noexcept
     {
-        init_soo();
-        memcpy(inner.soo.memory, object, size);
+        init_in_place();
+        memcpy(inner.in_place.memory, object, size);
     }
 
     template <typename T>
@@ -195,10 +195,10 @@ class any_basic_t {
     {
         wrapped_type = &detail::type_wrapper_t<T>::instance;
 
-        if (sizeof(T) > soo_capacity()) {
+        if (sizeof(T) > in_place_capacity()) {
             copy(&object, sizeof(T));
         } else {
-            copy_soo(&object);
+            copy_in_place(&object);
         }
     }
 
@@ -213,7 +213,7 @@ class any_basic_t {
         if (other.inner.memory.is_dynamic) {
             copy(other.inner.on_heap.memory, other.size());
         } else {
-            copy_soo(other.inner.soo.memory);
+            copy_in_place(other.inner.in_place.memory);
         }
     }
 
@@ -222,10 +222,10 @@ class any_basic_t {
     {
         wrapped_type = &detail::type_wrapper_t<T>::instance;
 
-        if (sizeof(T) > soo_capacity()) {
+        if (sizeof(T) > in_place_capacity()) {
             move(&object, sizeof(T));
         } else {
-            move_soo(&object);
+            move_in_place(&object);
         }
     }
 
@@ -240,7 +240,7 @@ class any_basic_t {
         if (other.inner.memory.is_dynamic) {
             set(other.inner.on_heap.memory);
         } else {
-            set_soo(other.inner.soo.memory, other.size());
+            set_in_place(other.inner.in_place.memory, other.size());
         }
 
         other.reset();
@@ -251,10 +251,10 @@ class any_basic_t {
     {
         wrapped_type = &detail::type_wrapper_t<T>::instance;
 
-        if (sizeof(T) > soo_capacity()) {
+        if (sizeof(T) > in_place_capacity()) {
             init(sizeof(T));
         } else {
-            init_soo();
+            init_in_place();
         }
 
         new (data()) T(std::forward<Args>(args)...);
@@ -275,11 +275,11 @@ class any_basic_t {
   public:
     any_basic_t() { reset(); }
 
-    template <bool EnsureSOO = false, typename T>
+    template <bool NoAlloc = false, typename T>
     any_basic_t(const T & object)
       : any_basic_t()
     {
-        static_assert(!EnsureSOO || sizeof(T) <= soo_capacity(), "object doesn't fit into ");
+        static_assert(!NoAlloc || sizeof(T) <= in_place_capacity(), "object doesn't fit in place");
         copy(object);
     }
 
@@ -317,12 +317,20 @@ class any_basic_t {
         move(std::move(other));
     }
 
-    constexpr static std::size_t soo_capacity() { return sizeof(inner.soo.memory); }
+    constexpr static std::size_t in_place_capacity() { return sizeof(inner.in_place.memory); }
 
-    template <typename T, bool EnsureSOO = false, typename... Args>
+    template <typename T, bool NoAlloc = false, typename... Args>
     inline T & emplace(Args &&... args)
     {
-        static_assert(!EnsureSOO || sizeof(T) <= soo_capacity(), "object size > SOO capacity");
+        static_assert(!NoAlloc || sizeof(T) <= in_place_capacity(), "object size > SOO capacity");
+        clear();
+        return emplace_unsafe<T>(std::forward<Args>(args)...);
+    }
+
+    template <typename T, bool NoAlloc = false, typename... Args>
+    inline T & emplace_in_place(Args &&... args)
+    {
+        static_assert(!NoAlloc || sizeof(T) <= in_place_capacity(), "object size > SOO capacity");
         clear();
         return emplace_unsafe<T>(std::forward<Args>(args)...);
     }
@@ -379,7 +387,7 @@ class any_basic_t {
     const void * data() const
     {
         return inner.memory.is_dynamic ? static_cast<const void *>(inner.on_heap.memory)
-                                       : static_cast<const void *>(inner.soo.memory);
+                                       : static_cast<const void *>(inner.in_place.memory);
     }
 
     void * data() { return const_cast<void *>(c_this()->data()); }
@@ -399,7 +407,7 @@ class any_basic_t {
         return wrapped_type && wrapped_type->is_same<T>();
     }
 
-    bool is_soo_active() const { return !inner.memory.is_dynamic; }
+    bool is_in_place() const { return !inner.memory.is_dynamic; }
 
     template <typename T>
     const T & as() const
