@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "type_subsystem/declarations.h"
+#include "type_subsystem/type.h"
 
 namespace interop {
 

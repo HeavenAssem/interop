@@ -48,8 +48,22 @@ TEST_F(interop_test, ffi_call)
 {
     auto && module = interop::ctx->get("module1");
 
-    module.create("test", 11)->function("get")->ffi_call();
-    // EXPECT_EQ(10, );
+    auto obj = module.create("test", 11);
+
+    EXPECT_EQ(11, obj->function("get")->ffi_call());
+    EXPECT_EQ(2.5, obj->function("member3")->ffi_call({2.0f, 0.5}));
+}
+
+TEST_F(interop_test, ffi_call_implicit_conversions)
+{
+    auto && module = interop::ctx->get("module1");
+
+    auto obj = module.create("test", 11);
+
+    EXPECT_EQ(11, obj->function("get")->ffi_call());
+    EXPECT_EQ(2.5, obj->function("member3")->ffi_call({2.0, 0.5}));
+    EXPECT_EQ(2.5, obj->function("member3")->ffi_call({2, 0.5}));
+    EXPECT_EQ(3.0, obj->function("member3")->ffi_call({2, 1}));
 }
 
 TEST_F(interop_test, object_create_fail)

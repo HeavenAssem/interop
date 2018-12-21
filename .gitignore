@@ -6,7 +6,7 @@ cmake-build-*/
 .vscode
 
 # Build
-build/
+build*/
 
 # Valgrind
 vgcore.*

@@ -11,29 +11,28 @@
 
 namespace interop {
 namespace detail {
-class i_type_wrapper_t {
-    virtual bool is_same(const std::type_info & type) = 0;
-
-  public:
+struct i_type_wrapper_t {
     template <typename T>
-    bool is_same()
+    inline bool is_same() const
     {
         return is_same(typeid(T));
     }
-    virtual const std::type_info & get_type()                        = 0;
-    virtual std::string get_name()                                   = 0;
-    virtual size_t get_size()                                        = 0;
-    virtual void copy(void * memory_to, const void * memory_from)    = 0;
-    virtual void move(void * memory_to, void * memory_from) noexcept = 0;
-    virtual void assign(void * memory_to, const void * memory_from)  = 0;
-    virtual void move_assign(void * memory_to, void * memory_from)   = 0;
-    virtual void destroy(void * memory) noexcept                     = 0;
-    virtual ~i_type_wrapper_t()                                      = default;
+
+    virtual bool is_same(const std::type_info & type) const                = 0;
+    virtual const std::type_info & get_type() const                        = 0;
+    virtual std::string get_name() const                                   = 0;
+    virtual size_t get_size() const                                        = 0;
+    virtual void copy(void * memory_to, const void * memory_from) const    = 0;
+    virtual void move(void * memory_to, void * memory_from) const noexcept = 0;
+    virtual void assign(void * memory_to, const void * memory_from) const  = 0;
+    virtual void move_assign(void * memory_to, void * memory_from) const   = 0;
+    virtual void destroy(void * memory) const noexcept                     = 0;
+    virtual ~i_type_wrapper_t()                                            = default;
 };
 
-template <class T>
-class type_wrapper_t: public i_type_wrapper_t {
-    bool is_same(const std::type_info & type) override { return get_type() == type; }
+template <class T, class Interface>
+struct type_wrapper_t: public Interface {
+    bool is_same(const std::type_info & type) const override { return get_type() == type; }
 
     static constexpr T & as_object(void * memory) { return *static_cast<T *>(memory); }
 
@@ -44,39 +43,55 @@ class type_wrapper_t: public i_type_wrapper_t {
 
     type_wrapper_t() {}
 
-  public:
-    const std::type_info & get_type() override { return typeid(T); }
-    std::string get_name() override { return utils::name_of_type<T>(); }
-    size_t get_size() override { return sizeof(T); }
+    const std::type_info & get_type() const override { return typeid(T); }
+    std::string get_name() const override { return utils::name_of_type<T>(); }
+    size_t get_size() const override { return sizeof(T); }
 
-    void copy(void * memory_to, const void * memory_from) override
+    void copy(void * memory_to, const void * memory_from) const override
     {
         new (memory_to) T(as_object(memory_from));
     }
 
-    void move(void * memory_to, void * memory_from) noexcept override
+    void move(void * memory_to, void * memory_from) const noexcept override
     {
         new (memory_to) T(std::move(as_object(memory_from)));
     }
 
-    void assign(void * memory_to, const void * memory_from) override
+    void assign(void * memory_to, const void * memory_from) const override
     {
         as_object(memory_to) = as_object(memory_from);
     }
 
-    void move_assign(void * memory_to, void * memory_from) override
+    void move_assign(void * memory_to, void * memory_from) const override
     {
         as_object(memory_to) = std::move(as_object(memory_from));
     }
 
-    void destroy(void * memory) noexcept override { as_object(memory).~T(); }
-
-    static type_wrapper_t instance;
+    void destroy(void * memory) const noexcept override { as_object(memory).~T(); }
 };
 
-template <class T>
-type_wrapper_t<T> type_wrapper_t<T>::instance;
 } // namespace detail
+
+template <class TypeWrapperInterface, template <typename, typename> class TypeWrapper>
+struct type_eraser_t {
+    using type_wrapper_ptr = const TypeWrapperInterface *;
+    template <typename T>
+    using type_wrapper_t = TypeWrapper<T, TypeWrapperInterface>;
+
+    static_assert(std::is_base_of<detail::i_type_wrapper_t, TypeWrapperInterface>::value,
+                  "interface must be derived from i_type_wrapper");
+
+    template <typename T>
+    static type_wrapper_ptr wrap()
+    {
+        static_assert(std::is_base_of<TypeWrapperInterface, type_wrapper_t<T>>::value,
+                      "interface must be base of wrapper");
+        static const type_wrapper_t<T> instance;
+        return &instance;
+    }
+};
+
+using default_type_eraser_t = type_eraser_t<detail::i_type_wrapper_t, detail::type_wrapper_t>;
 
 struct malloc_allocator_t {
     inline static void * allocate(size_t size) { return malloc(size); }
@@ -90,13 +105,16 @@ struct malloc_allocator_t {
  *  any_basic_t move doesn't trigger move constructor of held object
  *    explanation:
  *      we are moving ownership of object to another any_basic_t,
- *      but not to another object of the same type, thus no need to call move constructor
+ *      but not to another object of the same type, thus no need to call move
+ * constructor
  *
  *  any_basic_t copy, on contrary, does trigger copy constructor of held object
  *   since copy of held object needs to be created.
  */
-template <size_t MinStaticCapacity = 0, class Allocator = malloc_allocator_t>
+template <size_t MinStaticCapacity = 0, class TypeEraser = default_type_eraser_t,
+          class Allocator = malloc_allocator_t>
 class any_basic_t {
+  protected:
     constexpr static size_t get_additional_in_place_memory_size()
     {
         return std::max(sizeof(void *), MinStaticCapacity) - sizeof(void *);
@@ -125,7 +143,7 @@ class any_basic_t {
 
     } inner;
 
-    detail::i_type_wrapper_t * wrapped_type;
+    typename TypeEraser::type_wrapper_ptr wrapped_type;
 
     // ---- inner utils ----
     inline const any_basic_t * c_this() const noexcept { return this; }
@@ -193,7 +211,7 @@ class any_basic_t {
     template <typename T>
     inline void copy(const T & object)
     {
-        wrapped_type = &detail::type_wrapper_t<T>::instance;
+        wrapped_type = TypeEraser::template wrap<T>();
 
         if (sizeof(T) > in_place_capacity()) {
             copy(&object, sizeof(T));
@@ -220,7 +238,7 @@ class any_basic_t {
     template <typename T>
     inline void move(T && object)
     {
-        wrapped_type = &detail::type_wrapper_t<T>::instance;
+        wrapped_type = TypeEraser::template wrap<T>();
 
         if (sizeof(T) > in_place_capacity()) {
             move(&object, sizeof(T));
@@ -249,7 +267,7 @@ class any_basic_t {
     template <typename T, typename... Args>
     inline T & emplace_unsafe(Args &&... args)
     {
-        wrapped_type = &detail::type_wrapper_t<T>::instance;
+        wrapped_type = TypeEraser::template wrap<T>();
 
         if (sizeof(T) > in_place_capacity()) {
             init(sizeof(T));
@@ -273,6 +291,7 @@ class any_basic_t {
     }
 
   public:
+#pragma region constructors
     any_basic_t() { reset(); }
 
     template <bool NoAlloc = false, typename T>
@@ -317,24 +336,23 @@ class any_basic_t {
         move(std::move(other));
     }
 
-    constexpr static std::size_t in_place_capacity() { return sizeof(inner.in_place.memory); }
+#pragma endregion
 
-    template <typename T, bool NoAlloc = false, typename... Args>
+    template <typename T, typename... Args>
     inline T & emplace(Args &&... args)
     {
-        static_assert(!NoAlloc || sizeof(T) <= in_place_capacity(), "object size > SOO capacity");
         clear();
         return emplace_unsafe<T>(std::forward<Args>(args)...);
     }
 
-    template <typename T, bool NoAlloc = false, typename... Args>
+    template <typename T, typename... Args>
     inline T & emplace_in_place(Args &&... args)
     {
-        static_assert(!NoAlloc || sizeof(T) <= in_place_capacity(), "object size > SOO capacity");
-        clear();
-        return emplace_unsafe<T>(std::forward<Args>(args)...);
+        static_assert(sizeof(T) <= in_place_capacity(), "object size > SOO capacity");
+        return emplace<T>(std::forward<Args>(args)...);
     }
 
+#pragma region operators
     template <typename T>
     T & operator=(const T & object)
     {
@@ -380,7 +398,20 @@ class any_basic_t {
         return *this;
     }
 
-    operator bool() const { return !empty(); }
+    template <typename T>
+    operator const T &() const
+    {
+        return as<T>();
+    }
+
+    template <typename T>
+    operator T &()
+    {
+        return as<T>();
+    }
+#pragma endregion
+
+    constexpr static std::size_t in_place_capacity() { return sizeof(inner.in_place.memory); }
 
     std::size_t size() const { return wrapped_type ? wrapped_type->get_size() : 0; }
 
@@ -404,7 +435,7 @@ class any_basic_t {
     template <typename T>
     bool is() const
     {
-        return wrapped_type && wrapped_type->is_same<T>();
+        return wrapped_type && wrapped_type->template is_same<T>();
     }
 
     bool is_in_place() const { return !inner.memory.is_dynamic; }
@@ -443,6 +474,19 @@ class any_basic_t {
 
 #undef not_lvalue_ref
 #undef of_other_type
+
+// TODO: avoid mentioning template args
+template <typename T, size_t P1, class P2, class P3>
+bool operator==(const T & lhs, const any_basic_t<P1, P2, P3> & rhs)
+{
+    return lhs == rhs.template as<T>();
+}
+
+template <typename T, size_t P1, class P2, class P3>
+bool operator==(const any_basic_t<P1, P2, P3> & lhs, const T & rhs)
+{
+    return rhs == lhs;
+}
 
 using any_t = any_basic_t<>;
 

@@ -5,7 +5,7 @@
 
 #include "function_caller.h"
 #include "module_metadata.h"
-#include "type_subsystem/mappings.h"
+#include "type_subsystem/type.h"
 
 #include <exceptions.h>
 
@@ -70,7 +70,7 @@ class local_function_caller: public function_caller {
         }
 
         const auto & argument_metadata = metadata->arguments[argument_index];
-        if (argument_metadata.type != type_subsystem::enumerate_type<T>()) {
+        if (argument_metadata.type != enumerate_type<T>()) {
             switch (argument_metadata.type) {
             case type_e::Bool:
                 if constexpr (std::is_convertible<T, bool>::value) {

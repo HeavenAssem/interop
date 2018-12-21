@@ -2,7 +2,7 @@
 
 #include "internals/function_reflection.h"
 #include "object_metadata.h"
-#include "type_subsystem/mappings.h"
+#include "type_subsystem/type.h"
 
 namespace interop {
 namespace internals {
@@ -104,7 +104,7 @@ class member_reflector_t<T C::*, cpp_member_ptr> {
     static field_metadata_t reflect(std::string name)
     {
         field_metadata_t res;
-        res.type   = type_subsystem::enumerate_type<T>();
+        res.type   = enumerate_type<T>();
         res.name   = std::move(name);
         res.size   = sizeof(T);
         res.getter = static_cast<void *>(getter);
