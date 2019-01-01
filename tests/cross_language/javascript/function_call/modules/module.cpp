@@ -11,7 +11,18 @@
 using namespace std;
 
 namespace interop {
-void INTEROP_MODULE_REGISTER() {}
+int get10() {
+    return 10;
+}
+
+int cpp_add(int a, int b) {
+    return a + b;
+}
+
+void INTEROP_MODULE_REGISTER() {
+    register_function("get10", get10);
+    register_function("add", cpp_add);
+}
 
 module_context_t * ctx;
 
@@ -42,4 +53,12 @@ TEST_F(interop_test, native_module_visibility)
     auto & module = interop::ctx->get(other_module);
 
     EXPECT_TRUE(module.function("check_modules")->call<bool>());
+}
+
+TEST_F(interop_test, native_module_call)
+{
+    auto & module = interop::ctx->get(other_module);
+
+    EXPECT_EQ(10, module.function("cpp_get10")->call<int>());
+    EXPECT_EQ(15, module.function("cpp_add")->call<int>(10, 5));
 }

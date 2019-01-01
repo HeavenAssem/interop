@@ -14,4 +14,12 @@ function check_modules() {
     return cpp.module != undefined;
 }
 
+function cpp_get10() {
+    return cpp.module.get10();
+}
+
+function cpp_add(a, b) {
+    return cpp.module.add(a, b);
+}
+
 "OK";
