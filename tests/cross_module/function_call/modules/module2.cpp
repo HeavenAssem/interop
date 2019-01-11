@@ -52,6 +52,7 @@ TEST_F(interop_test, ffi_call)
 
     EXPECT_EQ(11, obj->function("get")->ffi_call());
     EXPECT_EQ(2.5, obj->function("member3")->ffi_call({2.0f, 0.5}));
+    EXPECT_EQ(2, module.function("add")->ffi_call({1, 1}));
 }
 
 TEST_F(interop_test, ffi_call_implicit_conversions)
@@ -81,10 +82,10 @@ class test_view {
   public:
     explicit test_view(interop::object_ptr obj)
       : object(std::move(obj))
-      , member1{*object->function("member1")}
-      , member2{*object->function("member2")}
-      , member3{*object->function("member3")}
-      , get{*object->function("get")}
+      , member1{object->function("member1")}
+      , member2{object->function("member2")}
+      , member3{object->function("member3")}
+      , get{object->function("get")}
     {}
 
 #define _M(mem_name) interop::function_view_t::imitator_t<decltype(&test::mem_name)> mem_name
@@ -99,15 +100,12 @@ class test_view {
 
 TEST_F(interop_test, imitator)
 {
-    try {
-        auto & module = interop::ctx->get(other_module);
+    auto & module = interop::ctx->get(other_module);
 
-        test_view test_obj(module.create("test", 10));
+    test_view test_obj(module.create("test", 10));
 
-        EXPECT_EQ(10, test_obj.get());
-        EXPECT_EQ(1.5, test_obj.member2(1));
-        EXPECT_EQ(1, test_obj.member3(0.7, 0.3));
-    } catch (interop::error_t & e) {
-        cout << e.what() << endl;
-    }
+    EXPECT_EQ(10, test_obj.get());
+    EXPECT_EQ(1.5, test_obj.member2(1));
+    // one of operands is float, so expect lower than double precision overall
+    EXPECT_FLOAT_EQ(1.0, test_obj.member3(0.7, 0.3));
 }

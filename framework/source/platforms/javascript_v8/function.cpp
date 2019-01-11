@@ -58,7 +58,7 @@ platform_function_v8_t::platform_function_v8_t(Handle<Function> && _handle,
   , module(_module)
 {}
 
-val_t platform_function_v8_t::call(arg_pack_t && args)
+val_t platform_function_v8_t::call(const arg_pack_t & args) const
 {
     auto isolate = module.get_isolate();
 

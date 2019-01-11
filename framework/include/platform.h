@@ -13,7 +13,7 @@ class platform_function_t {
   public:
     virtual ~platform_function_t() = default;
 
-    virtual val_t call(arg_pack_t && args) = 0;
+    virtual val_t call(const arg_pack_t & args) const = 0;
 };
 
 class platform_t {

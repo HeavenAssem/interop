@@ -30,12 +30,20 @@ test::test(double a)
 
 void test::member1() {}
 
-double test::member2(int arg) {
-    std::cout << "member2 invoked! b is: " << b << "; object: " << this << std::endl;
+double test::member2(int arg)
+{
+    std::cout << "member2 invoked! b is: " << b << "; arg is: " << arg << "; object: " << this
+              << std::endl;
     return 1.5 * arg;
 }
 
-double test::member3(float arg1, double arg2) { return arg2 + arg1; }
+double test::member3(float arg1, double arg2)
+{
+    std::cout << "member3 invoked! arg1 is: " << arg1 << "; arg2 is: " << arg2
+              << "; object: " << this << std::endl;
+
+    return arg1 + arg2;
+}
 
 int test::get()
 {
