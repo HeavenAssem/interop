@@ -20,7 +20,7 @@ struct arguments_reflector_t {
     {
         std::vector<type_metadata_t> arguments_metadata;
         arguments_metadata.reserve(sizeof...(Args));
-        fold_m(meta::describe_type<Args>(arguments_metadata));
+        unpack_m(meta::describe_type<Args>(arguments_metadata));
         return arguments_metadata;
     }
 };

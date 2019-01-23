@@ -9,7 +9,7 @@
 
 namespace interop {
 struct value_t;
-namespace detail {
+namespace details {
 struct i_value_type_wrapper_t: i_type_wrapper_t {
     virtual type_e get_enumerated_type() const            = 0;
     virtual bool is_convertible(type_e) const             = 0;
@@ -52,12 +52,12 @@ struct forbidding_allocator_t {
 };
 
 using value_type_eraser_t =
-    type_eraser_t<detail::i_value_type_wrapper_t, detail::value_type_wrapper_t>;
+    type_eraser_t<details::i_value_type_wrapper_t, details::value_type_wrapper_t>;
 using value_base_t = any_basic_t<sizeof(std::string), value_type_eraser_t, forbidding_allocator_t>;
-} // namespace detail
+} // namespace details
 
-struct value_t final: public detail::value_base_t {
-    using detail::value_base_t::any_basic_t;
+struct value_t final: public details::value_base_t {
+    using details::value_base_t::any_basic_t;
 
     explicit value_t(type_e);
 
@@ -78,7 +78,7 @@ struct value_t final: public detail::value_base_t {
     }
 };
 
-namespace detail {
+namespace details {
 template <typename To, typename From>
 inline To convert(From && from)
 {
@@ -117,5 +117,5 @@ void value_type_wrapper_t<T, Interface>::convert_to_type(type_e type, value_t & 
     }
 }
 
-} // namespace detail
+} // namespace details
 } // namespace interop

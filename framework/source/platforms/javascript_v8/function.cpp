@@ -49,6 +49,36 @@ Local<Value> to_v8(const val_t & value, Isolate * isolate)
         return Undefined(isolate);
     }
 }
+
+void exposed_function_callback(const FunctionCallbackInfo<Value> & info)
+{
+    auto isolate = info.GetIsolate();
+    HandleScope scope(isolate);
+    // FIXME: no lifetime guarantees whatsoever - options:
+    // 1) create object whose lifetime is same as v8 function that will check weak function pointer
+    //    and if needed will refetch it.
+    // 2) same as 1 but refetching will be done by framework
+    // 3) make function views persistent and update them instead of recreation
+    // Analysis:
+    // 1 - some overhead with unpredictable execution time in case of refetch: forget about RT case
+    //     function fetch must be thread-safe
+    // 2 - needs sync
+    // 3 - needs sync, but simpler, probably best current solution
+    auto fn = static_cast<function_view_t *>(info.Data().As<External>()->Value());
+
+    arg_pack_t args;
+    args.reserve(info.Length());
+
+    for (int i = 0; i < info.Length(); ++i) {
+        args.push_back(from_v8(isolate, info[i]));
+    }
+
+    const auto & ret_val = fn->ffi_call(std::move(args));
+    if (!ret_val.empty()) {
+        info.GetReturnValue().Set(to_v8(ret_val, isolate));
+    }
+}
+
 /*----------->> utility <<------------*/
 } // namespace
 
@@ -83,4 +113,19 @@ val_t platform_function_v8_t::call(const arg_pack_t & args) const
 
     return from_v8(isolate, handle.Get(isolate)->Call(global, (int)v8_args.size(), v8_args.data()));
 }
+
+void platform_function_v8_t::expose_function_view(v8::Isolate * isolate,
+                                                  v8::Local<v8::Object> object,
+                                                  v8::Local<v8::Context> context,
+                                                  const function_ptr_t & function)
+{
+    const auto & data = External::New(isolate, function.get());
+    const auto & name = function->get_metadata().name;
+
+    // FIXME: return value is probably useful
+    std::ignore = object->Set(
+        context, String::NewFromUtf8(isolate, name.data(), String::kNormalString, name.size()),
+        Function::New(isolate, exposed_function_callback, data));
+}
+
 } // namespace interop

@@ -20,59 +20,6 @@ using namespace std;
 using namespace v8;
 
 namespace interop {
-namespace { // FIXME: duplication
-val_t from_v8(Isolate * isolate, const Local<Value> & value)
-{
-    if (value.IsEmpty()) {
-        return {};
-    }
-
-    if (value->IsBoolean()) {
-        return value->ToBoolean(isolate)->Value();
-    } else if (value->IsInt32()) { // TODO: find a better solution
-        return value->ToInt32(isolate)->Value();
-    } else if (value->IsString()) {
-        return string(*String::Utf8Value(isolate, value->ToString(isolate)));
-    } else if (value->IsNumber()) {
-        return value->ToNumber(isolate)->Value();
-    }
-
-    return {};
-}
-
-arg_pack_t from_v8(Isolate * isolate, const FunctionCallbackInfo<Value> & info)
-{
-    arg_pack_t args;
-    args.reserve(info.Length());
-
-    for (int i = 0; i < info.Length(); ++i) {
-        args.push_back(from_v8(isolate, info[i]));
-    }
-
-    return args;
-}
-
-Local<Value> to_v8(const val_t & value, Isolate * isolate)
-{
-    const auto & type = value.type();
-
-    if (type == typeid(bool)) {
-        return Boolean::New(isolate, value.as<bool>());
-    } else if (type == typeid(int)) {
-        return Int32::New(isolate, value.as<int>());
-    } else if (type == typeid(float)) {
-        return Number::New(isolate, value.as<float>());
-    } else if (type == typeid(double)) {
-        return Number::New(isolate, value.as<double>());
-    } else if (type == typeid(string)) {
-        return String::NewFromUtf8(isolate, value.as<string>().c_str(), NewStringType::kNormal)
-            .ToLocalChecked();
-    } else {
-        return Undefined(isolate);
-    }
-}
-
-} // namespace
 
 platform_v8_module_t::platform_v8_module_t(Isolate * isolate,
                                            const platform_module_configuration_t & configuration)
@@ -162,7 +109,7 @@ void platform_v8_module_t::link(node_t & node) const
             return Continue;
         }
 
-        const auto metadata = module->get_metadata();
+        const auto & metadata = module->get_metadata();
 
         auto current_object = global;
         auto path           = utils::split_rx(metadata.name, "\\.");
@@ -177,27 +124,8 @@ void platform_v8_module_t::link(node_t & node) const
         }
 
         for (const auto & function_metadata : metadata.functions) {
-            const auto & name = function_metadata.name;
-            const auto & function = module->function(name);
-
-            const auto & data = External::New(isolate, function.get());
-
-            FunctionCallback fn_cb =
-                [](const FunctionCallbackInfo<Value> & info) {
-                    auto isolate = info.GetIsolate();
-                    HandleScope scope(isolate);
-                    // FIXME: no lifetime guarantees whatsoever
-                    auto fn = static_cast<function_view_t *>(info.Data().As<External>()->Value());
-
-                    const auto& ret_val = fn->ffi_call(from_v8(isolate, info));
-                    if (!ret_val.empty()) {
-                        info.GetReturnValue().Set(to_v8(ret_val, isolate));
-                    }
-                };
-
-            std::ignore = current_object->Set(
-                String::NewFromUtf8(isolate, name.data(), String::kNormalString, name.size()),
-                Function::New(isolate, fn_cb, data));
+            platform_function_v8_t::expose_function_view(isolate, current_object, local_context,
+                                                         module->function(function_metadata.name));
         }
         return Continue;
     });

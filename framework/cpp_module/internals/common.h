@@ -44,9 +44,9 @@ void describe_type(std::vector<type_metadata_t> & metadata)
 
 // clang-format off
 #ifdef CPP_17
-#define fold_m(expr) ((void)expr, ...)
+#define unpack_m(expr) ((void)expr, ...)
 #else
-#define fold_m(expr) { int dummy[] = {0, ((void)expr, 0)...}; }
+#define unpack_m(expr) { int dummy[] = {0, ((void)expr, 0)...}; }
 #endif
 // clang-format on
 

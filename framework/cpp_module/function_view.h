@@ -17,6 +17,13 @@
 #include <iostream>
 
 namespace interop {
+namespace details {
+template <typename R, typename... Args>
+auto function_cast(void * pointer)
+{
+    return reinterpret_cast<R (*)(typename std::decay<Args>::type...)>(pointer);
+}
+} // namespace details
 
 /**
  * @details: framework should be aware of every instance of function_view_t to
@@ -39,7 +46,7 @@ class function_view_t {
     function_view_t(const platform_function_ptr & function, const function_metadata_t & metadata);
     function_view_t(const function_view_t &) = delete;
 
-    val_t ffi_call(arg_pack_t = {}) const; // TODO: make const
+    val_t ffi_call(arg_pack_t = {}) const;
 
     /**
      * @brief: Fast, strict call. No implicit type casting.
@@ -53,14 +60,14 @@ class function_view_t {
                                            * reload / replace) */
         if (metadata.is_native()) {
             if (bound_object) {
-                return reinterpret_cast<R (*)(void *, typename std::decay<Args>::type...)>(metadata.pointer)(
+                return details::function_cast<R, void *, Args...>(metadata.pointer)(
                     bound_object, std::forward<Args>(args)...);
             } else {
                 if (metadata.context) {
-                    return reinterpret_cast<R (*)(void *, typename std::decay<Args>::type...)>(metadata.pointer)(
+                    return details::function_cast<R, void *, Args...>(metadata.pointer)(
                         metadata.context, std::forward<Args>(args)...);
                 } else {
-                    return reinterpret_cast<R (*)(typename std::decay<Args>::type...)>(metadata.pointer)(
+                    return details::function_cast<R, Args...>(metadata.pointer)(
                         std::forward<Args>(args)...);
                 }
             }
@@ -101,6 +108,8 @@ class function_view_t {
     {
         return {*this};
     }
+
+    const function_metadata_t & get_metadata() const { return metadata; }
 
   private:
     val_t non_native_call(const arg_pack_t & args) const;

@@ -10,7 +10,7 @@
 #include <unordered_map>
 
 namespace interop {
-namespace detail {
+namespace details {
 struct i_type_wrapper_t {
     template <typename T>
     inline bool is_same() const
@@ -70,7 +70,7 @@ struct type_wrapper_t: public Interface {
     void destroy(void * memory) const noexcept override { as_object(memory).~T(); }
 };
 
-} // namespace detail
+} // namespace details
 
 template <class TypeWrapperInterface, template <typename, typename> class TypeWrapper>
 struct type_eraser_t {
@@ -78,7 +78,7 @@ struct type_eraser_t {
     template <typename T>
     using type_wrapper_t = TypeWrapper<T, TypeWrapperInterface>;
 
-    static_assert(std::is_base_of<detail::i_type_wrapper_t, TypeWrapperInterface>::value,
+    static_assert(std::is_base_of<details::i_type_wrapper_t, TypeWrapperInterface>::value,
                   "interface must be derived from i_type_wrapper");
 
     template <typename T>
@@ -91,7 +91,7 @@ struct type_eraser_t {
     }
 };
 
-using default_type_eraser_t = type_eraser_t<detail::i_type_wrapper_t, detail::type_wrapper_t>;
+using default_type_eraser_t = type_eraser_t<details::i_type_wrapper_t, details::type_wrapper_t>;
 
 struct malloc_allocator_t {
     inline static void * allocate(size_t size) { return malloc(size); }

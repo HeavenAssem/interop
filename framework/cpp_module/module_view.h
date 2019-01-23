@@ -56,7 +56,7 @@ class module_view_t {
         }
 
         void * object =
-            reinterpret_cast<void * (*)(Args && ...)>(it->pointer)(std::forward<Args>(args)...);
+            details::function_cast<void *, Args...>(it->pointer)(std::forward<Args>(args)...);
 
         return std::make_shared<object_view_t>(object, metadata);
     }

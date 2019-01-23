@@ -15,7 +15,7 @@ struct destructor_proxy_t {
 
 template <typename Class, typename... Args>
 struct constructor_proxy_t {
-    static Class * call(Args &&... args) { return new Class(std::forward<Args>(args)...); }
+    static Class * call(Args... args) { return new Class(std::forward<Args>(args)...); }
 };
 
 template <class... Args>
@@ -41,7 +41,7 @@ struct constructor_reflector_t {
 template <class Class, class... Constructors>
 void register_constructors(object_metadata_t & metadata)
 {
-    fold_m(constructor_reflector_t<Class>::template reflect<Constructors>(metadata.constructors));
+    unpack_m(constructor_reflector_t<Class>::template reflect<Constructors>(metadata.constructors));
 }
 
 template <class Class>
