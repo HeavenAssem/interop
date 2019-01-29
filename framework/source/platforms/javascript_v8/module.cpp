@@ -3,6 +3,7 @@
 //
 
 #include "module.h"
+#include "common.hpp"
 #include "configuration.h"
 #include "function.h"
 #include "node.h"
@@ -115,12 +116,15 @@ void platform_v8_module_t::link(node_t & node) const
         auto path           = utils::split_rx(metadata.name, "\\.");
 
         for (const auto & name : path) {
-            auto new_object = Object::New(isolate);
-            cout << "add object: " << name << endl;
-            current_object->Set(
-                String::NewFromUtf8(isolate, name.data(), String::kNormalString, name.size()),
-                new_object);
-            current_object = new_object;
+            auto key      = helpers::to_v8(isolate, name);
+            auto existing = current_object->Get(local_context, key).ToLocalChecked();
+            if (!existing->IsObject()) {
+                auto new_object = Object::New(isolate);
+                current_object->Set(key, new_object);
+                current_object = new_object;
+            } else {
+                current_object = existing.As<Object>();
+            }
         }
 
         for (const auto & function_metadata : metadata.functions) {

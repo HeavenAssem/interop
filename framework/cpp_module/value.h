@@ -41,13 +41,13 @@ struct value_type_wrapper_t: type_wrapper_t<T, Interface> {
 struct forbidding_allocator_t {
     inline static void * allocate(size_t)
     {
-        INTEROP_INVARIANT(false, "@allocate: dynamic allocation of value is forbidden");
+        interop_invariant_m(false, "@allocate: dynamic allocation of value is forbidden");
         return nullptr;
     }
 
     inline static void free(void *)
     {
-        INTEROP_INVARIANT(false, "@free: dynamic allocation of value is forbidden");
+        interop_invariant_m(false, "@free: dynamic allocation of value is forbidden");
     }
 };
 
@@ -73,7 +73,7 @@ struct value_t final: public details::value_base_t {
         if (enumerated_type() == type) {
             return;
         }
-        INTEROP_INVARIANT(wrapped_type, "no wrapped type");
+        interop_invariant_m(wrapped_type, "no wrapped type");
         wrapped_type->convert_to_type(type, *this);
     }
 };
@@ -99,7 +99,7 @@ void value_type_wrapper_t<T, Interface>::convert_to_type(type_e type, value_t & 
         if constexpr (std::is_convertible<T, void *>::value) {
             value = convert<void *>(value.as<T>());
         } else {
-            INTEROP_INVARIANT(false, "not convertible but should be");
+            interop_invariant_m(false, "not convertible but should be");
         }
         return;
 #define XX(NAME, TYPE, _1)                                                                         \
@@ -107,7 +107,7 @@ void value_type_wrapper_t<T, Interface>::convert_to_type(type_e type, value_t & 
         if constexpr (std::is_convertible<T, TYPE>::value) {                                       \
             value = convert<TYPE>(value.as<T>());                                                  \
         } else {                                                                                   \
-            INTEROP_INVARIANT(false, "not convertible but should be");                             \
+            interop_invariant_m(false, "not convertible but should be");                           \
         }                                                                                          \
         return;
         INTEROP_TYPE_ENUM(XX)

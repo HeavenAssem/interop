@@ -3,7 +3,7 @@
 #include <cassert>
 #include <sstream>
 
-#define INTEROP_INVARIANT(CONDITION, MSG_EXPRESSION)                                               \
+#define interop_invariant_m(CONDITION, MSG_EXPRESSION)                                             \
     do {                                                                                           \
         if (!(CONDITION)) {                                                                        \
             std::ostringstream ss;                                                                 \
