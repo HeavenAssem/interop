@@ -154,8 +154,11 @@ class any_basic_t {
     template <size_t MC, typename T>
     struct is_any<any_basic_t<MC, T>>: std::true_type {};
 
-#define not_lvalue_ref(T) class = typename std::enable_if<!std::is_lvalue_reference<T>::value>::type
-#define of_other_type(T) class = typename std::enable_if<!is_any<T>::value>::type
+#define not_lvalue_ref_m(T)                                                                        \
+    typename = typename std::enable_if<!std::is_lvalue_reference<T>::value>::type
+#define of_other_type_m(T) typename = typename std::enable_if<!is_any<T>::value>::type
+#define not_void_m(T) typename = typename std::enable_if<!std::is_void<T>::value>::type
+#define is_void_m(T) typename = typename std::enable_if<std::is_void<T>::value>::type
     // ---- inner utils end ----
 
     inline void reset() noexcept
@@ -302,7 +305,7 @@ class any_basic_t {
         copy(object);
     }
 
-    template <typename T, not_lvalue_ref(T), of_other_type(T)>
+    template <typename T, not_lvalue_ref_m(T), of_other_type_m(T)>
     any_basic_t(T && object)
       : any_basic_t()
     {
@@ -361,7 +364,7 @@ class any_basic_t {
         return as<T>();
     }
 
-    template <typename T, not_lvalue_ref(T), of_other_type(T)>
+    template <typename T, not_lvalue_ref_m(T), of_other_type_m(T)>
     T & operator=(T && object)
     {
         clear();
@@ -440,7 +443,7 @@ class any_basic_t {
 
     bool is_in_place() const { return !inner.memory.is_dynamic; }
 
-    template <typename T>
+    template <typename T, not_void_m(T)>
     const T & as() const
     {
         if (empty()) {
@@ -453,6 +456,16 @@ class any_basic_t {
         }
 
         return *static_cast<const T *>(data());
+    }
+
+    template <typename T, is_void_m(T)>
+    void as() const
+    {
+        if (!empty()) {
+            throw type_mismatch_error_t("storing: " + wrapped_type->get_name() +
+                                        " casting to void");
+        }
+        return;
     }
 
     template <typename T>
@@ -472,8 +485,10 @@ class any_basic_t {
     ~any_basic_t() noexcept { delete_dirty(); }
 };
 
-#undef not_lvalue_ref
-#undef of_other_type
+#undef is_void_m
+#undef not_void_m
+#undef of_other_type_m
+#undef not_lvalue_ref_m
 
 // TODO: avoid mentioning template args
 template <typename T, size_t P1, class P2, class P3>

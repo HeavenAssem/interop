@@ -71,12 +71,7 @@ class function_view_t {
         } else {
             assert(platform_function);
 
-            if constexpr (std::is_void<R>::value) {
-                non_native_call(arg_pack_t{std::forward<Args>(args)...});
-                return;
-            } else {
-                return non_native_call(arg_pack_t{std::forward<Args>(args)...}).as<R>();
-            }
+            return non_native_call(arg_pack_t{std::forward<Args>(args)...}).as<R>();
         }
     }
 
