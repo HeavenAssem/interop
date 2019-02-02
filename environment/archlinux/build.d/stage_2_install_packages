@@ -17,7 +17,6 @@ boost \
 clang \
 cmake \
 gtest \
-libffi \
 make \
 gdb \
 git \
@@ -25,10 +24,6 @@ valgrind \
 vim \
 wget \
 yajl
-
-# a small trickery with libffi header paths
-# because no one seems to care about them being fucked up
-sudo ln -s /usr/lib/libffi-*/include/*.h /usr/include/
 
 cd /tmp
 

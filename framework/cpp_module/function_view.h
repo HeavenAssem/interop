@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "ffi_call.hpp"
 #include "function_metadata.h"
 #include "object_view.h"
 
@@ -37,8 +36,6 @@ class function_view_t {
     function_metadata_t metadata;
     void * bound_object;
     platform_function_ptr platform_function;
-
-    friend val_t ffi_call(const function_view_t &, arg_pack_t);
 
   public:
     explicit function_view_t(const function_metadata_t & metadata);
@@ -112,6 +109,6 @@ class function_view_t {
     const function_metadata_t & get_metadata() const { return metadata; }
 
   private:
-    val_t non_native_call(const arg_pack_t & args) const;
+    val_t non_native_call(arg_pack_t args) const;
 };
 } // namespace interop

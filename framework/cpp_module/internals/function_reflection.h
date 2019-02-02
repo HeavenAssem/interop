@@ -13,6 +13,27 @@
 namespace interop {
 namespace internals {
 namespace function_reflection {
+namespace details {
+
+template <typename CallablePtr, typename Return, typename... Args, size_t... Indices>
+universal_wrapper_t wrap_universally(std::index_sequence<Indices...>)
+{
+    return [](void * callable_ptr, arg_pack_t args) -> val_t {
+        const auto & callable = *reinterpret_cast<CallablePtr>(callable_ptr);
+        if constexpr (std::is_void<Return>::value) {
+            callable(args[Indices].as<Args>()...);
+            return {};
+        } else {
+            return callable(args[Indices].as<Args>()...);
+        }
+    };
+}
+template <typename F, typename R, typename... Args>
+universal_wrapper_t wrap_universally()
+{
+    return wrap_universally<F, R, Args...>(std::index_sequence_for<Args...>());
+}
+} // namespace details
 
 template <typename... Args>
 struct arguments_reflector_t {
@@ -44,6 +65,7 @@ class function_reflector_t<R (*)(Args...)> {
         return {
             reinterpret_cast<void *>(c_function),
             nullptr,
+            details::wrap_universally<c_function_t, R, Args...>(),
             std::move(name),
             reflected_t::arguments(),
             reflected_t::return_type(),
@@ -74,6 +96,7 @@ struct functor_reflector_t {
         return {
             reinterpret_cast<void *>(proxy),
             &iter->second,
+            details::wrap_universally<cpp_functor_t *, R, Args...>(),
             std::move(name),
             reflected_t::arguments(),
             reflected_t::return_type(),

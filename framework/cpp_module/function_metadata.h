@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "declarations.h"
 #include "type_metadata.h"
 
 #include <vector>
@@ -18,9 +19,12 @@ struct destructor_metadata_t {
     void * pointer;
 };
 
+typedef val_t (*universal_wrapper_t)(void *, arg_pack_t);
+
 struct function_metadata_t {
-    void * pointer = nullptr;
-    void * context = nullptr;
+    void * pointer             = nullptr;
+    void * context             = nullptr;
+    universal_wrapper_t invoke = nullptr;
     std::string name;
     std::vector<type_metadata_t> arguments;
     type_metadata_t return_type;

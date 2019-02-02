@@ -7,8 +7,6 @@
 
 #include <logger.h>
 
-#include "ffi_call.inl"
-
 using namespace std;
 
 namespace interop {
@@ -36,10 +34,22 @@ function_view_t::function_view_t(const platform_function_ptr & function,
 
 val_t function_view_t::ffi_call(arg_pack_t args) const
 {
-    return interop::ffi_call(*this, std::move(args));
+    if (platform_function) {
+        return non_native_call(move(args));
+    }
+
+    for (size_t i = 0; i < args.size(); ++i) {
+        args[i].convert_to(metadata.arguments[i].type);
+    }
+
+    if (bound_object) {
+        return metadata.invoke(bound_object, move(args));
+    }
+
+    return metadata.invoke(metadata.pointer, move(args));
 }
 
-val_t function_view_t::non_native_call(const arg_pack_t & args) const
+val_t function_view_t::non_native_call(arg_pack_t args) const
 {
     assert(platform_function);
 

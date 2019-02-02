@@ -7,6 +7,29 @@
 namespace interop {
 namespace internals {
 namespace class_reflection {
+namespace details {
+
+template <typename MemberPtr, MemberPtr member_ptr, typename C, typename R, typename... Args,
+          size_t... Indices>
+universal_wrapper_t wrap_universally(std::index_sequence<Indices...>)
+{
+    return [](void * object_ptr, arg_pack_t args) -> val_t {
+        auto & object = *static_cast<C*>(object_ptr);
+        if constexpr (std::is_void<R>::value) {
+            (object.*member_ptr)(args[Indices].as<Args>()...);
+            return {};
+        } else {
+            return (object.*member_ptr)(args[Indices].as<Args>()...);
+        }
+    };
+}
+template <typename MemberPtr, MemberPtr member_ptr, typename C, typename R, typename... Args>
+universal_wrapper_t wrap_universally()
+{
+    return wrap_universally<MemberPtr, member_ptr, C, R, Args...>(
+        std::index_sequence_for<Args...>());
+}
+} // namespace details
 
 template <class C>
 struct destructor_proxy_t {
@@ -74,6 +97,7 @@ class member_reflector_t<R (C::*)(Args...), cpp_method_ptr> {
         return {
             reinterpret_cast<void *>(c_function),
             nullptr,
+            details::wrap_universally<cpp_method_t, cpp_method_ptr, C, R, Args...>(),
             std::move(name),
             reflected_t::arguments(),
             reflected_t::return_type(),
