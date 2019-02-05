@@ -3,6 +3,7 @@
 //
 
 #include "function.h"
+#include "common.hpp"
 #include "module.h"
 
 using namespace std;
@@ -43,8 +44,7 @@ Local<Value> to_v8(const val_t & value, Isolate * isolate)
     } else if (type == typeid(double)) {
         return Number::New(isolate, value.as<double>());
     } else if (type == typeid(string)) {
-        return String::NewFromUtf8(isolate, value.as<string>().c_str(), NewStringType::kNormal)
-            .ToLocalChecked();
+        return helpers::to_v8(isolate, value.as<string>());
     } else {
         return Undefined(isolate);
     }
@@ -123,9 +123,8 @@ void platform_function_v8_t::expose_function_view(v8::Isolate * isolate,
     const auto & name = function->get_metadata().name;
 
     // FIXME: return value is probably useful
-    std::ignore = object->Set(
-        context, String::NewFromUtf8(isolate, name.data(), String::kNormalString, name.size()),
-        Function::New(isolate, exposed_function_callback, data));
+    std::ignore = object->Set(context, helpers::to_v8(isolate, name),
+                              Function::New(isolate, exposed_function_callback, data));
 }
 
 } // namespace interop

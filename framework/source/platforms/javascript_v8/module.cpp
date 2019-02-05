@@ -36,10 +36,6 @@ platform_v8_module_t::platform_v8_module_t(Isolate * isolate,
 
     auto global_template = ObjectTemplate::New(isolate);
 
-    // global_template->Set(
-    //     String::NewFromUtf8(isolate, "get"),
-    //     FunctionTemplate::New(isolate, [](const FunctionCallbackInfo<Value> & info) {}));
-
     // Create a new context.
     auto local_context = Context::New(isolate, nullptr, global_template);
     // Store context
@@ -53,13 +49,10 @@ platform_v8_module_t::platform_v8_module_t(Isolate * isolate,
             stringstream buffer;
             buffer << source.rdbuf();
             const auto & source_str = buffer.str();
-            auto retVal =
-                Script::Compile(local_context, String::NewFromUtf8(isolate, source_str.c_str(),
-                                                                   NewStringType::kNormal)
-                                                   .ToLocalChecked())
-                    .ToLocalChecked()
-                    ->Run(local_context)
-                    .ToLocalChecked();
+            auto retVal = Script::Compile(local_context, helpers::to_v8(isolate, source_str))
+                              .ToLocalChecked()
+                              ->Run(local_context)
+                              .ToLocalChecked();
 
             interop_logger(log, "Run JS script " + filename + ": " +
                                     (*String::Utf8Value(isolate, retVal)));
@@ -103,8 +96,6 @@ void platform_v8_module_t::link(node_t & node) const
 
     auto global = local_context->Global();
 
-    global->Set(String::NewFromUtf8(isolate, "lol"), Object::New(isolate));
-
     node.for_each_module([&](const module_ptr & module) {
         if (module.get() == this) {
             return Continue;
@@ -118,10 +109,13 @@ void platform_v8_module_t::link(node_t & node) const
         for (const auto & name : path) {
             auto key      = helpers::to_v8(isolate, name);
             auto existing = current_object->Get(local_context, key).ToLocalChecked();
-            if (!existing->IsObject()) {
+            if (existing->IsUndefined()) {
                 auto new_object = Object::New(isolate);
                 current_object->Set(key, new_object);
                 current_object = new_object;
+            } else if (!existing->IsObject()) {
+                throw error_t("name collision during V8 module link: " + name +
+                              " already exists and it's not an object");
             } else {
                 current_object = existing.As<Object>();
             }
@@ -155,7 +149,7 @@ function_ptr_t platform_v8_module_t::fetch_function(const std::string & name)
     Context::Scope context_scope(local_context);
 
     auto global = local_context->Global();
-    auto value  = global->Get(String::NewFromUtf8(isolate, name.c_str()));
+    auto value  = global->Get(helpers::to_v8(isolate, name));
 
     if (value->IsFunction()) {
         function_metadata_t meta;
