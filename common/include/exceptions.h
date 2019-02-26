@@ -10,6 +10,8 @@
 #include <string>
 #include <string_view>
 
+// FIXME: I guess this all was a mistake...
+
 namespace interop {
 class error_t: std::exception {
     std::string message;

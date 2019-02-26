@@ -137,7 +137,7 @@ void platform_v8_module_t::listen(const std::string_view & module_name,
     throw not_implemented("platform_v8_module_t::listen");
 }
 
-function_ptr_t platform_v8_module_t::fetch_function(const std::string & name)
+function_ptr_t platform_v8_module_t::fetch_function(const std::string_view & name)
 {
     // Enter the isolate
     v8::Isolate::Scope isolate_scope(isolate);
@@ -160,7 +160,7 @@ function_ptr_t platform_v8_module_t::fetch_function(const std::string & name)
             make_shared<platform_function_v8_t>(Handle<Function>::Cast(value), *this), meta);
     }
 
-    throw function_lookup_error_t("function '" + name + "' was not found in module '" +
+    throw function_lookup_error_t("function '"s + name.data() + "' was not found in module '" +
                                   this->name() + "'");
 }
 

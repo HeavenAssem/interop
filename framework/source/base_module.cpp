@@ -8,28 +8,22 @@
 #include <cassert>
 
 using namespace std;
+using namespace placeholders;
 
 namespace interop {
 base_module_t::base_module_t() {}
 
 const module_metadata_t & base_module_t::get_metadata() const { return metadata; }
 
-function_ptr_t base_module_t::function(const string & name)
+function_ptr_t base_module_t::function(const string_view & name)
 {
-    auto & function_ptr = functions_cache[name];
-    if (!function_ptr) {
-        function_ptr = fetch_function(name);
-    }
-
-    assert(function_ptr);
-
-    return function_ptr;
+    return cache.get(name, bind(&base_module_t::fetch_function, this, _1));
 }
 
 void base_module_t::unload()
 {
     interop_logger(log, "unload module '" + name() + "'");
 
-    functions_cache.clear();
+    cache.clear();
 }
 } // namespace interop

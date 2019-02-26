@@ -3,7 +3,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
 CLANG_FORMAT_CMD="clang-format -i"
-FILE_NAME_REGEXP=".*\.(cpp|h)$"
+FILE_NAME_REGEXP=".*\.(cpp|hpp|h)$"
 FILTER_BY_EXTENSION="grep -E $FILE_NAME_REGEXP"
 
 cd ${DIR}

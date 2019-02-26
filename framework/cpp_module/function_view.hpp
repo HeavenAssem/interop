@@ -5,11 +5,12 @@
 #pragma once
 
 #include "function_metadata.h"
-#include "object_view.h"
+#include "object_view.hpp"
 
 #include "internals/strict_call_validator.h"
 
-#include <cassert>
+#include <invariant.h>
+
 #include <exceptions.h>
 #include <memory>
 
@@ -35,12 +36,11 @@ class function_view_t {
     std::vector<internals::metadata_checker_t> metadata_checkers;
     function_metadata_t metadata;
     void * bound_object;
-    platform_function_ptr platform_function;
+    platform_function_ptr_t platform_function;
 
   public:
-    explicit function_view_t(const function_metadata_t & metadata);
-    function_view_t(object_view_t & object, const function_metadata_t & metadata);
-    function_view_t(const platform_function_ptr & function, const function_metadata_t & metadata);
+    explicit function_view_t(const function_metadata_t & metadata, void * object = nullptr);
+    function_view_t(const platform_function_ptr_t & function, const function_metadata_t & metadata);
     function_view_t(const function_view_t &) = delete;
 
     val_t ffi_call(arg_pack_t = {}) const;
@@ -69,7 +69,7 @@ class function_view_t {
                 }
             }
         } else {
-            assert(platform_function);
+            interop_invariant_m(platform_function, "not native and has no platform function");
 
             return non_native_call(arg_pack_t{std::forward<Args>(args)...}).as<R>();
         }
@@ -106,4 +106,5 @@ class function_view_t {
   private:
     val_t non_native_call(arg_pack_t args) const;
 };
+
 } // namespace interop

@@ -80,7 +80,7 @@ struct functor_reflector_t {
         typedef R (*c_function_t)(void *, Args...);
         using cpp_functor_t = decltype(functor);
         using reflected_t   = signature_reflector_t<R, Args...>;
-        static std::unordered_map<std::string, cpp_functor_t> storage;
+        static std::unordered_map<std::string, cpp_functor_t> storage; // FIXME: this is just lame
 
         auto [iter, inserted] = storage.emplace(name, std::move(functor));
 
@@ -89,7 +89,7 @@ struct functor_reflector_t {
         }
 
         c_function_t proxy = [](void * context, Args... args) -> R {
-            auto ctx = reinterpret_cast<cpp_functor_t *>(context);
+            auto ctx = static_cast<cpp_functor_t *>(context);
             return (*ctx)(std::forward<Args>(args)...);
         };
 

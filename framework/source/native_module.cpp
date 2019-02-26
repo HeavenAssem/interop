@@ -110,13 +110,13 @@ void native_module_t::listen(const std::string_view & module_name, std::function
     throw not_implemented("native_module_t::listen");
 }
 
-function_ptr_t native_module_t::fetch_function(const std::string & name)
+function_ptr_t native_module_t::fetch_function(const std::string_view & name)
 {
     auto it =
         find_if(metadata.functions.begin(), metadata.functions.end(),
                 [&](const function_metadata_t & fn_metadata) { return name == fn_metadata.name; });
     if (it == metadata.functions.end()) {
-        throw function_lookup_error_t("function with name \"" + name + "\" not found in module " +
+        throw function_lookup_error_t("function with name \""s + name.data() + "\" not found in module " +
                                       metadata.name);
     }
 

@@ -12,8 +12,8 @@ class platform_function_t;
 
 struct platform_configuration_t;
 
-using module_ptr            = std::unique_ptr<base_module_t>;
-using platform_ptr          = std::shared_ptr<platform_t>;
-using platform_factory_ptr  = std::shared_ptr<platform_factory_t>;
-using platform_function_ptr = std::shared_ptr<platform_function_t>;
+using module_ptr              = std::unique_ptr<base_module_t>;
+using platform_ptr            = std::shared_ptr<platform_t>;
+using platform_factory_ptr    = std::shared_ptr<platform_factory_t>;
+using platform_function_ptr_t = std::shared_ptr<platform_function_t>;
 } // namespace interop

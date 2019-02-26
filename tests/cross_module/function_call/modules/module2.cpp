@@ -77,10 +77,10 @@ TEST_F(interop_test, object_create_fail)
 }
 
 class test_view {
-    interop::object_ptr object;
+    interop::object_ptr_t object;
 
   public:
-    explicit test_view(interop::object_ptr obj)
+    explicit test_view(interop::object_ptr_t obj)
       : object(std::move(obj))
       , member1{object->function("member1")}
       , member2{object->function("member2")}

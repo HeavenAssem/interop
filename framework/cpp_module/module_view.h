@@ -4,8 +4,10 @@
 
 #pragma once
 
-#include "function_view.h"
-#include "object_view.h"
+#include "function_view.hpp"
+#include "object_view.hpp"
+
+#include "internals/metadata_utils.hpp"
 
 #include "definitions.h"
 #include "module_metadata.h"
@@ -17,52 +19,39 @@ namespace interop {
 class module_view_t {
     virtual const module_metadata_t & get_metadata() const = 0;
 
-    const object_metadata_t & get_object_metadata(const std::string & name) const
+    const object_metadata_t & get_object_metadata(const std::string_view & name) const
     {
-        auto & metadata = get_metadata();
+        using namespace std::string_literals;
 
-        auto it = std::find_if(
-            metadata.types.begin(), metadata.types.end(),
-            [&](const object_metadata_t & o_metadata) { return name == o_metadata.name; });
-        if (it == metadata.types.end()) {
-            throw type_lookup_error_t("type with name \"" + name + "\" not found in module \"" +
-                                      metadata.name + "\"");
-        }
-        return *it;
+        auto & metadata = get_metadata();
+        return internals::find_metadata(metadata.types, name, [&] {
+            throw type_lookup_error_t("type with name \""s + name.data() +
+                                      "\" not found in module \"" + metadata.name + "\"");
+        });
     }
 
   public:
-    virtual function_ptr_t function(const std::string & name) = 0;
+    virtual function_ptr_t function(const std::string_view & name) = 0;
 
     template <typename... Args>
-    object_ptr create(const std::string & name, Args &&... args) const
+    object_ptr_t create(const std::string_view & name, Args &&... args) const
     {
-        auto & metadata = get_object_metadata(name);
+        using namespace std::string_literals;
 
-        auto it =
-            std::find_if(metadata.constructors.begin(), metadata.constructors.end(),
-                         [&name](const constructor_metadata_t & c_metadata) {
-                             try {
-                                 internals::strict_call_validator_t<void, Args...>::check_args(
-                                     name, c_metadata.arguments);
-                             } catch (const arguments_mismatch_error_t &) {
-                                 return false;
-                             }
-                             return true;
-                         });
+        auto & metadata  = get_object_metadata(name);
+        auto constructor = details::function_cast<void *, Args...>(
+            internals::find_first_with_args<Args...>(metadata.constructors,
+                                                     [&] {
+                                                         throw function_lookup_error_t(
+                                                             "no matching constructor for type "s +
+                                                             name.data());
+                                                     })
+                .pointer);
 
-        if (it == metadata.constructors.end()) {
-            throw function_lookup_error_t("no matching constructor in type " + name);
-        }
-
-        void * object =
-            details::function_cast<void *, Args...>(it->pointer)(std::forward<Args>(args)...);
-
-        return std::make_shared<object_view_t>(object, metadata);
+        return object_view_t::create(constructor(std::forward<Args>(args)...), metadata);
     }
     virtual void listen(const std::string_view & module_name, std::function<void()> && handler) = 0;
     virtual const std::string & name() const                                                    = 0;
-
     virtual ~module_view_t() = default;
 };
 } // namespace interop
