@@ -9,12 +9,11 @@
 
 #include "internals/strict_call_validator.h"
 
+#include <exceptions.h>
 #include <invariant.h>
 
-#include <exceptions.h>
 #include <memory>
-
-#include <iostream>
+#include <optional>
 
 namespace interop {
 namespace details {
@@ -32,49 +31,55 @@ auto function_cast(void * pointer)
  * function_view_t use
  * function_ptr.
  */
-class function_view_t {
-    std::vector<internals::metadata_checker_t> metadata_checkers;
-    function_metadata_t metadata;
-    void * bound_object;
-    platform_function_ptr_t platform_function;
+struct function_view_t {
+    const std::string name;
+    const internals::native_callable_data_opt_t native;
 
-  public:
-    explicit function_view_t(const function_metadata_t & metadata, void * object = nullptr);
-    function_view_t(const platform_function_ptr_t & function, const function_metadata_t & metadata);
-    function_view_t(const function_view_t &) = delete;
+    function_view_t(std::string name, internals::native_callable_data_opt_t native = std::nullopt)
+      : name(std::move(name))
+      , native(std::move(native))
+    {}
 
-    val_t ffi_call(arg_pack_t = {}) const;
-
+    // function_view_t(const function_view_t &) = delete;
+    // function_view_t(function_view_t &&)      = delete;
     /**
-     * @brief: Fast, strict call. No implicit type casting.
+     * @brief Fast, strict, native to native call with NO implicit type casting
+     *
+     * @details Can fallback to dynamic call if static is not posiible
      */
     template <class R = void, class... Args>
     R call(Args &&... args)
     {
-        static internals::strict_call_validator_t<R, Args...> checker_instance(
-            metadata, metadata_checkers); /** check call signature and register check
-                                           * in case if metadata changes (on function's module
-                                           * reload / replace) */
-        if (metadata.is_native()) {
-            if (bound_object) {
-                return details::function_cast<R, void *, Args...>(metadata.pointer)(
-                    bound_object, std::forward<Args>(args)...);
-            } else {
-                if (metadata.context) {
-                    return details::function_cast<R, void *, Args...>(metadata.pointer)(
-                        metadata.context, std::forward<Args>(args)...);
-                } else {
-                    return details::function_cast<R, Args...>(metadata.pointer)(
-                        std::forward<Args>(args)...);
-                }
-            }
-        } else {
-            interop_invariant_m(platform_function, "not native and has no platform function");
+        /** check call signature and register check
+         * in case if metadata changes (on function's module
+         * reload / replace) */
+        static internals::strict_call_validator_t<R, Args...> checker_instance(name, native);
 
-            return non_native_call(arg_pack_t{std::forward<Args>(args)...}).as<R>();
-        }
+        return native ? native->context
+                            ? details::function_cast<R, void *, Args...>(native->pointer)(
+                                  native->context, std::forward<Args>(args)...)
+                            : details::function_cast<R, Args...>(native->pointer)(
+                                  std::forward<Args>(args)...)
+                      : dynamic_call(arg_pack_t{std::forward<Args>(args)...}).as<R>();
     }
 
+    /**
+     * @brief flexible, dynamic, native to (non-)native call with runtime implicit type casting
+     */
+    virtual val_t dynamic_call(arg_pack_t = {}) const = 0;
+
+    /**
+     * @brief destructor
+     */
+    virtual ~function_view_t() = default;
+
+    /**
+     * @brief imitator interface
+     *
+     * @details mocks native callable and allows compile-time implicit type casting
+     *
+     * @tparam T
+     */
     template <typename T>
     friend struct imitator_t;
 
@@ -100,11 +105,6 @@ class function_view_t {
     {
         return {*this};
     }
-
-    const function_metadata_t & get_metadata() const { return metadata; }
-
-  private:
-    val_t non_native_call(arg_pack_t args) const;
-};
+}; // namespace interop
 
 } // namespace interop

@@ -17,6 +17,7 @@
 
 namespace interop {
 class module_view_t {
+  protected:
     virtual const module_metadata_t & get_metadata() const = 0;
 
     const object_metadata_t & get_object_metadata(const std::string_view & name) const
@@ -50,6 +51,7 @@ class module_view_t {
 
         return object_view_t::create(constructor(std::forward<Args>(args)...), metadata);
     }
+    virtual object_ptr_t create_dynamic(const std::string_view & name, arg_pack_t) const        = 0;
     virtual void listen(const std::string_view & module_name, std::function<void()> && handler) = 0;
     virtual const std::string & name() const                                                    = 0;
     virtual ~module_view_t() = default;

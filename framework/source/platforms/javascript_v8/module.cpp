@@ -49,7 +49,7 @@ platform_v8_module_t::platform_v8_module_t(Isolate * isolate,
             stringstream buffer;
             buffer << source.rdbuf();
             const auto & source_str = buffer.str();
-            auto retVal = Script::Compile(local_context, helpers::to_v8(isolate, source_str))
+            auto retVal = Script::Compile(local_context, helpers::to_v8_str(isolate, source_str))
                               .ToLocalChecked()
                               ->Run(local_context)
                               .ToLocalChecked();
@@ -107,7 +107,7 @@ void platform_v8_module_t::link(node_t & node) const
         auto path           = utils::split_rx(metadata.name, "\\.");
 
         for (const auto & name : path) {
-            auto key      = helpers::to_v8(isolate, name);
+            auto key      = helpers::to_v8_str(isolate, name);
             auto existing = current_object->Get(local_context, key).ToLocalChecked();
             if (existing->IsUndefined()) {
                 auto new_object = Object::New(isolate);
@@ -125,8 +125,79 @@ void platform_v8_module_t::link(node_t & node) const
             platform_function_v8_t::expose_function_view(isolate, current_object, local_context,
                                                          module->function(function_metadata.name));
         }
+
+        for (const auto & type_metadata : metadata.types) {
+            const auto & name = type_metadata.name;
+
+            auto tpl = FunctionTemplate::New(
+                isolate,
+                [](const FunctionCallbackInfo<Value> & args) {
+                    auto isolate = args.GetIsolate();
+                    const auto & module =
+                        *static_cast<const base_module_t *>(args.Data().As<External>()->Value());
+
+                    if (!args.IsConstructCall()) {
+                        isolate->ThrowException(
+                            helpers::to_v8_str(isolate, "Cannot call constructor as function"));
+                    }
+
+                    HandleScope scope(isolate);
+                    auto js_object  = args.This();
+                    auto js_pobject = Persistent<Object>(isolate, js_object);
+
+                    // TODO: avoid conversion: get from another place
+                    const auto & name = helpers::from_v8(isolate, js_object->GetConstructorName());
+
+                    auto object = module.create_dynamic(name, helpers::from_v8(args));
+                    js_object->SetAlignedPointerInInternalField(0, object.get());
+                    js_pobject.SetWeak(object.release(),
+                                       [](const WeakCallbackInfo<object_view_t> & data) {
+                                           delete data.GetParameter();
+                                       },
+                                       WeakCallbackType::kParameter);
+                },
+                External::New(isolate, module.get()));
+
+            tpl->SetClassName(helpers::to_v8_str(isolate, name));
+            tpl->InstanceTemplate()->SetInternalFieldCount(2); // module_view, metadata
+
+            auto prototype = tpl->PrototypeTemplate();
+
+            for (const auto & method_metadata : type_metadata.methods) {
+                // Add object properties to the prototype
+                // Methods, Properties, etc.
+                prototype->Set(
+                    helpers::to_v8_str(isolate, method_metadata.name),
+                    FunctionTemplate::New(
+                        isolate,
+                        [](const FunctionCallbackInfo<Value> & args) {
+                            const auto & object = *static_cast<object_view_t *>(
+                                args.This()->GetAlignedPointerFromInternalField(0));
+                            const auto & method_metadata = *static_cast<function_metadata_t *>(
+                                args.Data().As<External>()->Value());
+                            auto isolate = args.GetIsolate();
+
+                            args.GetReturnValue().Set(helpers::to_v8(
+                                isolate, object.function(method_metadata.name)
+                                             ->dynamic_call(helpers::from_v8(args))));
+                        },
+                        External::New(isolate,
+                                      const_cast<function_metadata_t *>(&method_metadata))));
+            }
+
+            current_object->Set(helpers::to_v8_str(isolate, name), tpl->GetFunction());
+        }
+
         return Continue;
     });
+}
+
+object_ptr_t platform_v8_module_t::create_dynamic(const std::string_view & name,
+                                                  arg_pack_t args) const
+{
+    std::ignore = name;
+    std::ignore = args;
+    throw not_implemented("platform_v8_module_t::create_dynamic");
 }
 
 void platform_v8_module_t::listen(const std::string_view & module_name,
@@ -149,19 +220,14 @@ function_ptr_t platform_v8_module_t::fetch_function(const std::string_view & nam
     Context::Scope context_scope(local_context);
 
     auto global = local_context->Global();
-    auto value  = global->Get(helpers::to_v8(isolate, name));
+    auto value  = global->Get(helpers::to_v8_str(isolate, name));
 
-    if (value->IsFunction()) {
-        function_metadata_t meta;
-
-        meta.name = name;
-
-        return make_shared<function_view_t>(
-            make_shared<platform_function_v8_t>(Handle<Function>::Cast(value), *this), meta);
+    if (!value->IsFunction()) {
+        throw function_lookup_error_t("function '"s + name.data() + "' was not found in module '" +
+                                      this->name() + "'");
     }
 
-    throw function_lookup_error_t("function '"s + name.data() + "' was not found in module '" +
-                                  this->name() + "'");
+    return make_shared<platform_function_v8_t>(name.data(), Handle<Function>::Cast(value), *this);
 }
 
 const string & platform_v8_module_t::name() const { return metadata.name; }

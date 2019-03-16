@@ -5,6 +5,7 @@
 #include "native_module.h"
 #include "configuration.h"
 #include "metadata_backward_compatibility.h"
+#include "native_function.hpp"
 #include "node.h"
 
 #include "module_definitions.h"
@@ -69,6 +70,31 @@ void native_module_t::link(node_t & node) const
     }
 }
 
+object_ptr_t native_module_t::create_dynamic(const std::string_view & name, arg_pack_t args) const
+{
+    const auto & metadata = get_object_metadata(name);
+
+    interop_invariant_m(!metadata.constructors.empty(), "empty constructors past validation");
+
+    std::ostringstream ss;
+
+    for (const auto & constructor_metadata : metadata.constructors) {
+        try {
+            return object_view_t::create(
+                native_function_t::dynamic_call(constructor_metadata.invoke,
+                                                constructor_metadata.pointer, args,
+                                                constructor_metadata.arguments)
+                    .as<void *>(),
+                metadata);
+        } catch (const typing_error_t & e) {
+            ss << "candidate failed: " << e.what() << ";";
+        }
+    }
+
+    throw function_lookup_error_t("unable to find suitable overload for " + metadata.name +
+                                  " constructor: " + ss.str());
+}
+
 native_module_t::native_module_t(native_module_t && other) noexcept
   : base_module_t(move(other))
   , library(move(other.library))
@@ -101,6 +127,27 @@ void native_module_t::validate_metadata() const
     if (metadata.name.empty()) {
         throw module_validation_error_t("module name is empty");
     }
+
+    std::ostringstream ss;
+    size_t objects_with_no_name = 0;
+
+    for (const auto & object_metadata : metadata.types) {
+        if (object_metadata.name.empty()) {
+            ++objects_with_no_name;
+        } else if (object_metadata.constructors.empty()) {
+            ss << object_metadata.name << " has no constructors; ";
+        }
+    }
+
+    if (objects_with_no_name) {
+        ss << objects_with_no_name << " objects have no name; ";
+    }
+
+    const auto & errors = ss.str();
+
+    if (!errors.empty()) {
+        throw module_validation_error_t(errors);
+    }
 }
 
 void native_module_t::listen(const std::string_view & module_name, std::function<void()> && handler)
@@ -116,10 +163,10 @@ function_ptr_t native_module_t::fetch_function(const std::string_view & name)
         find_if(metadata.functions.begin(), metadata.functions.end(),
                 [&](const function_metadata_t & fn_metadata) { return name == fn_metadata.name; });
     if (it == metadata.functions.end()) {
-        throw function_lookup_error_t("function with name \""s + name.data() + "\" not found in module " +
-                                      metadata.name);
+        throw function_lookup_error_t("function with name \""s + name.data() +
+                                      "\" not found in module " + metadata.name);
     }
 
-    return make_shared<function_view_t>(*it);
+    return make_shared<native_function_t>(*it);
 }
 } // namespace interop

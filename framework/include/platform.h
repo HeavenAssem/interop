@@ -6,14 +6,16 @@
 
 #include "declarations.h"
 
+#include <function_view.hpp>
+
 #include <string>
 
 namespace interop {
-class platform_function_t {
+class platform_function_t: public function_view_t {
   public:
-    virtual ~platform_function_t() = default;
-
-    virtual val_t call(const arg_pack_t & args) const = 0;
+    platform_function_t(std::string name)
+      : function_view_t{std::move(name)}
+    {}
 };
 
 class platform_t {

@@ -13,7 +13,7 @@
 // FIXME: I guess this all was a mistake...
 
 namespace interop {
-class error_t: std::exception {
+class error_t: public std::exception {
     std::string message;
 
   public:

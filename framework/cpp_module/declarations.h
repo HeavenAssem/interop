@@ -7,10 +7,10 @@
 
 namespace interop {
 class object_view_t;
-class function_view_t;
+struct function_view_t;
 class platform_function_t; // shouldn't be here
 
-using object_ptr_t            = std::shared_ptr<object_view_t>;
+using object_ptr_t            = std::unique_ptr<object_view_t>;
 using function_ptr_t          = std::shared_ptr<function_view_t>;
 using platform_function_ptr_t = std::shared_ptr<platform_function_t>;
 

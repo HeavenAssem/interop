@@ -56,16 +56,21 @@ class function_reflector_t;
 
 template <typename R, typename... Args>
 class function_reflector_t<R (*)(Args...)> {
-    typedef R (*c_function_t)(Args...);
-    using reflected_t = signature_reflector_t<R, Args...>;
+    using c_function_t = R (*)(Args...);
+    using reflected_t  = signature_reflector_t<R, Args...>;
 
   public:
+    static universal_wrapper_t wrap_universally()
+    {
+        return details::wrap_universally<c_function_t, R, Args...>();
+    }
+
     static function_metadata_t reflect(std::string name, c_function_t c_function)
     {
         return {
             reinterpret_cast<void *>(c_function),
             nullptr,
-            details::wrap_universally<c_function_t, R, Args...>(),
+            wrap_universally(),
             std::move(name),
             reflected_t::arguments(),
             reflected_t::return_type(),
@@ -77,7 +82,7 @@ struct functor_reflector_t {
     template <typename R, typename... Args>
     static function_metadata_t reflect(std::string name, std::function<R(Args...)> functor)
     {
-        typedef R (*c_function_t)(void *, Args...);
+        using c_function_t  = R (*)(void *, Args...);
         using cpp_functor_t = decltype(functor);
         using reflected_t   = signature_reflector_t<R, Args...>;
         static std::unordered_map<std::string, cpp_functor_t> storage; // FIXME: this is just lame

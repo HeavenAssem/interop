@@ -8,47 +8,11 @@
 
 using namespace std;
 using namespace v8;
+using namespace interop::helpers;
 
 namespace interop {
 namespace {
 /*-----------<< utility >>------------*/
-val_t from_v8(Isolate * isolate, const Local<Value> & value)
-{
-    if (value.IsEmpty()) {
-        return {};
-    }
-
-    if (value->IsBoolean()) {
-        return value->ToBoolean(isolate)->Value();
-    } else if (value->IsInt32()) { // TODO: find a better solution
-        return value->ToInt32(isolate)->Value();
-    } else if (value->IsString()) {
-        return string(*String::Utf8Value(isolate, value->ToString(isolate)));
-    } else if (value->IsNumber()) {
-        return value->ToNumber(isolate)->Value();
-    }
-
-    return {};
-}
-
-Local<Value> to_v8(const val_t & value, Isolate * isolate)
-{
-    const auto & type = value.type();
-
-    if (type == typeid(bool)) {
-        return Boolean::New(isolate, value.as<bool>());
-    } else if (type == typeid(int)) {
-        return Int32::New(isolate, value.as<int>());
-    } else if (type == typeid(float)) {
-        return Number::New(isolate, value.as<float>());
-    } else if (type == typeid(double)) {
-        return Number::New(isolate, value.as<double>());
-    } else if (type == typeid(string)) {
-        return helpers::to_v8(isolate, value.as<string>());
-    } else {
-        return Undefined(isolate);
-    }
-}
 
 void exposed_function_callback(const FunctionCallbackInfo<Value> & info)
 {
@@ -73,22 +37,23 @@ void exposed_function_callback(const FunctionCallbackInfo<Value> & info)
         args.push_back(from_v8(isolate, info[i]));
     }
 
-    const auto & ret_val = fn->ffi_call(std::move(args));
+    const auto & ret_val = fn->dynamic_call(std::move(args));
     if (!ret_val.empty()) {
-        info.GetReturnValue().Set(to_v8(ret_val, isolate));
+        info.GetReturnValue().Set(to_v8(isolate, ret_val));
     }
 }
 
 /*----------->> utility <<------------*/
 } // namespace
 
-platform_function_v8_t::platform_function_v8_t(Handle<Function> && _handle,
-                                               platform_v8_module_t & _module)
-  : handle(_module.get_isolate(), _handle)
-  , module(_module)
+platform_function_v8_t::platform_function_v8_t(std::string name, Handle<Function> && handle,
+                                               platform_v8_module_t & module)
+  : platform_function_t(std::move(name))
+  , handle(module.get_isolate(), handle)
+  , module(module)
 {}
 
-val_t platform_function_v8_t::call(const arg_pack_t & args) const
+val_t platform_function_v8_t::dynamic_call(arg_pack_t args) const
 {
     auto isolate = module.get_isolate();
 
@@ -108,7 +73,7 @@ val_t platform_function_v8_t::call(const arg_pack_t & args) const
     v8_args.reserve(args.size());
 
     for (const auto & arg : args) {
-        v8_args.push_back(to_v8(arg, isolate));
+        v8_args.push_back(helpers::to_v8(isolate, arg));
     }
 
     return from_v8(isolate, handle.Get(isolate)->Call(global, (int)v8_args.size(), v8_args.data()));
@@ -119,12 +84,10 @@ void platform_function_v8_t::expose_function_view(v8::Isolate * isolate,
                                                   v8::Local<v8::Context> context,
                                                   const function_ptr_t & function)
 {
-    const auto & data = External::New(isolate, function.get());
-    const auto & name = function->get_metadata().name;
-
     // FIXME: return value is probably useful
-    std::ignore = object->Set(context, helpers::to_v8(isolate, name),
-                              Function::New(isolate, exposed_function_callback, data));
+    std::ignore = object->Set(
+        context, to_v8(isolate, function->name),
+        Function::New(isolate, exposed_function_callback, External::New(isolate, function.get())));
 }
 
 } // namespace interop

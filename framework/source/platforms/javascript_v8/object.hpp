@@ -1,3 +1,5 @@
 #pragma once
 
-namespace interop {} // namespace interop
+namespace interop {
+void expose_object_view();
+} // namespace interop

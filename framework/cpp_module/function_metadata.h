@@ -10,16 +10,19 @@
 #include <vector>
 
 namespace interop {
+using universal_wrapper_t = val_t (*)(void *, arg_pack_t);
+
 struct constructor_metadata_t {
-    void * pointer;
+    void * pointer             = nullptr;
+    universal_wrapper_t invoke = nullptr;
     std::vector<type_metadata_t> arguments;
 };
 
 struct destructor_metadata_t {
-    void * pointer;
-};
+    void (*pointer)(void *) = nullptr;
 
-typedef val_t (*universal_wrapper_t)(void *, arg_pack_t);
+    void operator()(void * object) const { pointer(object); }
+};
 
 struct function_metadata_t {
     void * pointer             = nullptr;

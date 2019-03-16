@@ -44,27 +44,27 @@ TEST_F(interop_test, call)
     EXPECT_EQ(560, module.function("capturing_lambda")->call<int>(8));
 }
 
-TEST_F(interop_test, ffi_call)
+TEST_F(interop_test, dynamic_call)
 {
     auto && module = interop::ctx->get("module1");
 
     auto obj = module.create("test", 11);
 
-    EXPECT_EQ(11, obj->function("get")->ffi_call());
-    EXPECT_EQ(2.5, obj->function("member3")->ffi_call({2.0f, 0.5}));
-    EXPECT_EQ(2, module.function("add")->ffi_call({1, 1}));
+    EXPECT_EQ(11, obj->function("get")->dynamic_call());
+    EXPECT_EQ(2.5, obj->function("member3")->dynamic_call({2.0f, 0.5}));
+    EXPECT_EQ(2, module.function("add")->dynamic_call({1, 1}));
 }
 
-TEST_F(interop_test, ffi_call_implicit_conversions)
+TEST_F(interop_test, dynamic_call_implicit_conversions)
 {
     auto && module = interop::ctx->get("module1");
 
     auto obj = module.create("test", 11);
 
-    EXPECT_EQ(11, obj->function("get")->ffi_call());
-    EXPECT_EQ(2.5, obj->function("member3")->ffi_call({2.0, 0.5}));
-    EXPECT_EQ(2.5, obj->function("member3")->ffi_call({2, 0.5}));
-    EXPECT_EQ(3.0, obj->function("member3")->ffi_call({2, 1}));
+    EXPECT_EQ(11, obj->function("get")->dynamic_call());
+    EXPECT_EQ(2.5, obj->function("member3")->dynamic_call({2.0, 0.5}));
+    EXPECT_EQ(2.5, obj->function("member3")->dynamic_call({2, 0.5}));
+    EXPECT_EQ(3.0, obj->function("member3")->dynamic_call({2, 1}));
 }
 
 TEST_F(interop_test, object_create_fail)

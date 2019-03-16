@@ -2,11 +2,11 @@
 
 #include "exceptions.h"
 #include "function_metadata.h"
+#include "native_callable_data.hpp"
 #include "type_subsystem/type.h"
 
 namespace interop {
 namespace internals {
-using metadata_checker_t = void (*)(const function_metadata_t &);
 
 template <class R, class... Args>
 class strict_call_validator_t {
@@ -64,19 +64,18 @@ class strict_call_validator_t {
         }
     }
 
-    strict_call_validator_t(const function_metadata_t & metadata,
-                            std::vector<metadata_checker_t> & checkers)
+    strict_call_validator_t(const std::string & name, const native_callable_data_opt_t & data)
     {
-        checkers.push_back(&strict_call_validator_t::check_metadata);
-        check_metadata(metadata);
+        if (data) {
+            data->metadata_checkers.push_back(&strict_call_validator_t::check_metadata);
+            check_metadata(name, *data);
+        }
     }
 
-    static void check_metadata(const function_metadata_t & metadata)
+    static void check_metadata(const std::string & name, const native_callable_data_t & data)
     {
-        if (metadata.is_native()) {
-            check_args(metadata.name, metadata.arguments);
-            check_return_type(metadata.name, metadata.return_type);
-        }
+        check_args(name, data.arguments);
+        check_return_type(name, data.return_type);
     }
 };
 } // namespace internals

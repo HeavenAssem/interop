@@ -1,12 +1,11 @@
 #pragma once
 
-#include "object_metadata.h"
 #include "caches.hpp"
+#include "object_metadata.h"
 
 #include <object_view.hpp>
 
 namespace interop {
-
 
 class native_object_t final: public object_view_t {
     const object_metadata_t & metadata;
@@ -19,8 +18,8 @@ class native_object_t final: public object_view_t {
       , pointer(pointer)
     {}
 
+    const std::string & name() const override;
     function_ptr_t function(const std::string_view &) const override;
-
     ~native_object_t();
 };
 } // namespace interop

@@ -5,6 +5,8 @@
 
 #include "declarations.h"
 
+#include <type_traits.hpp>
+
 #include <string_view>
 
 namespace interop {
@@ -16,7 +18,7 @@ class platform_factory_t {
 
 template <class Platform>
 class wrapped_platform final: public platform_factory_t {
-    static_assert(std::is_base_of<platform_t, Platform>::value,
+    static_assert(is_derived_from<platform_t, Platform>::value,
                   "platform must be derived from interop::platform");
 
   public:
@@ -36,5 +38,5 @@ struct platform_registrator {
 platform_ptr instantiate_platform(const std::string & id);
 } // namespace interop
 
-#define register_platform_as(_id, _platform)                                                       \
-    static platform_registrator __registrator_object__(_id, wrap_platform<_platform>());
+#define register_platform_as(ID, PLATFORM)                                                         \
+    static platform_registrator __registrator_object__(ID, wrap_platform<PLATFORM>());

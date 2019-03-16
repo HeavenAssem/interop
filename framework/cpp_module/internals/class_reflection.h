@@ -1,6 +1,6 @@
 #pragma once
 
-#include "internals/function_reflection.h"
+#include "function_reflection.h"
 #include "object_metadata.h"
 #include "type_subsystem/type.h"
 
@@ -31,9 +31,9 @@ universal_wrapper_t wrap_universally()
 }
 } // namespace details
 
-template <class C>
+template <typename Class>
 struct destructor_proxy_t {
-    static void call(C * object) { return delete object; }
+    static void call(void * object) { return delete static_cast<Class *>(object); }
 };
 
 template <typename Class, typename... Args>
@@ -56,8 +56,10 @@ struct constructor_reflector_t {
         using proxy_t     = typename Constructor::template proxy_t<Class>;
         using reflector_t = typename Constructor::reflector_t;
 
-        metadata.push_back(constructor_metadata_t{reinterpret_cast<void *>(proxy_t::call),
-                                                  reflector_t::arguments()});
+        metadata.push_back(constructor_metadata_t{
+            reinterpret_cast<void *>(proxy_t::call),
+            nullptr, // function_reflection::function_reflector_t<decltype(proxy_t::call)>::wrap_universally(),
+            reflector_t::arguments()});
     }
 };
 
@@ -70,7 +72,7 @@ void register_constructors(object_metadata_t & metadata)
 template <class Class>
 void register_destructor(object_metadata_t & metadata)
 {
-    metadata.destructor.pointer = (void *)destructor_proxy_t<Class>::call;
+    metadata.destructor.pointer = destructor_proxy_t<Class>::call;
 }
 
 template <typename M, M>
