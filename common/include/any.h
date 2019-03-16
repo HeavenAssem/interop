@@ -3,7 +3,6 @@
 #include "exceptions.h"
 #include "utils/typing.h"
 
-#include <cassert>
 #include <cstring>
 #include <limits>
 #include <typeindex>
@@ -452,7 +451,6 @@ class any_basic_t {
         }
 
         if (!is<T>()) {
-            assert(false);
             throw type_mismatch_error_t("storing: " + wrapped_type->get_name() +
                                         " casting to: " + utils::name_of_type<T>());
         }
