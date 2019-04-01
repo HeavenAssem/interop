@@ -14,10 +14,10 @@ namespace interop {
 INTEROP_DEFINE_CURRENT_ABI_VERSION
 
 extern "C" {
-module_metadata_t INTEROP_MODULE_METADATA{};
+module_metadata_t interop_module_metadata_m{};
 
-void INTEROP_MODULE_INITIALIZE(module_context_t & context);
-void INTEROP_MODULE_REGISTER();
+void interop_link(module_context_t & context);
+void interop_register();
 }
 
 template <typename Function>
@@ -27,10 +27,10 @@ void register_function(std::string name, Function function)
     using internals::function_reflection::functor_reflector_t;
 
     if constexpr (std::is_class<Function>::value) {
-        INTEROP_MODULE_METADATA.functions.push_back(
+        interop_module_metadata_m.functions.push_back(
             functor_reflector_t::reflect(std::move(name), std::function{std::move(function)}));
     } else {
-        INTEROP_MODULE_METADATA.functions.push_back(
+        interop_module_metadata_m.functions.push_back(
             function_reflector_t<Function>::reflect(std::move(name), std::move(function)));
     }
 }
@@ -43,7 +43,7 @@ auto register_class(std::string name)
 {
     using internals::class_reflection::class_reflector_t;
 
-    INTEROP_MODULE_METADATA.types.emplace_back(std::move(name));
-    return class_reflector_t<Class, Constructors...>(INTEROP_MODULE_METADATA.types.back());
+    interop_module_metadata_m.types.emplace_back(std::move(name));
+    return class_reflector_t<Class, Constructors...>(interop_module_metadata_m.types.back());
 }
 } // namespace interop

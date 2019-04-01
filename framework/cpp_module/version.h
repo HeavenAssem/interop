@@ -40,9 +40,9 @@ struct version_t {
 };
 
 extern "C" {
-extern const version_t INTEROP_FRAMEWORK_ABI_VERSION;
+extern const version_t interop_framework_abi_version_m;
 }
 } // namespace interop
 
 #define INTEROP_DEFINE_CURRENT_ABI_VERSION                                                         \
-    const version_t INTEROP_FRAMEWORK_ABI_VERSION{0, 1, 0, 0};
+    const version_t interop_framework_abi_version_m{0, 1, 0, 0};

@@ -22,6 +22,42 @@ using namespace v8;
 
 namespace interop {
 
+void constructor_callback(const FunctionCallbackInfo<Value> & args)
+{
+    auto isolate        = args.GetIsolate();
+    const auto & module = *static_cast<const base_module_t *>(args.Data().As<External>()->Value());
+
+    if (!args.IsConstructCall()) {
+        isolate->ThrowException(helpers::to_v8_str(isolate, "Cannot call constructor as function"));
+    }
+
+    HandleScope scope(isolate);
+    auto js_object  = args.This();
+    auto js_pobject = Persistent<Object>(isolate, js_object);
+
+    // TODO: avoid conversion: get from another place
+    const auto & name = helpers::from_v8(isolate, js_object->GetConstructorName());
+
+    auto object = module.create_dynamic(name, helpers::from_v8(args));
+    js_object->SetAlignedPointerInInternalField(0, object.get());
+    js_pobject.SetWeak(
+        object.release(),
+        [](const WeakCallbackInfo<object_view_t> & data) { delete data.GetParameter(); },
+        WeakCallbackType::kParameter);
+}
+
+void method_callback(const FunctionCallbackInfo<Value> & args)
+{
+    const auto & object =
+        *static_cast<object_view_t *>(args.This()->GetAlignedPointerFromInternalField(0));
+    const auto & method_metadata =
+        *static_cast<function_metadata_t *>(args.Data().As<External>()->Value());
+    auto isolate = args.GetIsolate();
+
+    args.GetReturnValue().Set(helpers::to_v8(
+        isolate, object.function(method_metadata.name)->dynamic_call(helpers::from_v8(args))));
+}
+
 platform_v8_module_t::platform_v8_module_t(Isolate * isolate,
                                            const platform_module_configuration_t & configuration)
   : base_module_t()
@@ -96,6 +132,7 @@ void platform_v8_module_t::link(node_t & node) const
 
     auto global = local_context->Global();
 
+    // Expose all modules
     node.for_each_module([&](const module_ptr & module) {
         if (module.get() == this) {
             return Continue;
@@ -129,34 +166,9 @@ void platform_v8_module_t::link(node_t & node) const
         for (const auto & type_metadata : metadata.types) {
             const auto & name = type_metadata.name;
 
-            auto tpl = FunctionTemplate::New(
-                isolate,
-                [](const FunctionCallbackInfo<Value> & args) {
-                    auto isolate = args.GetIsolate();
-                    const auto & module =
-                        *static_cast<const base_module_t *>(args.Data().As<External>()->Value());
-
-                    if (!args.IsConstructCall()) {
-                        isolate->ThrowException(
-                            helpers::to_v8_str(isolate, "Cannot call constructor as function"));
-                    }
-
-                    HandleScope scope(isolate);
-                    auto js_object  = args.This();
-                    auto js_pobject = Persistent<Object>(isolate, js_object);
-
-                    // TODO: avoid conversion: get from another place
-                    const auto & name = helpers::from_v8(isolate, js_object->GetConstructorName());
-
-                    auto object = module.create_dynamic(name, helpers::from_v8(args));
-                    js_object->SetAlignedPointerInInternalField(0, object.get());
-                    js_pobject.SetWeak(object.release(),
-                                       [](const WeakCallbackInfo<object_view_t> & data) {
-                                           delete data.GetParameter();
-                                       },
-                                       WeakCallbackType::kParameter);
-                },
-                External::New(isolate, module.get()));
+            auto tpl =
+                FunctionTemplate::New(isolate, helpers::forward_exceptions<constructor_callback>,
+                                      External::New(isolate, module.get()));
 
             tpl->SetClassName(helpers::to_v8_str(isolate, name));
             tpl->InstanceTemplate()->SetInternalFieldCount(2); // module_view, metadata
@@ -168,21 +180,9 @@ void platform_v8_module_t::link(node_t & node) const
                 // Methods, Properties, etc.
                 prototype->Set(
                     helpers::to_v8_str(isolate, method_metadata.name),
-                    FunctionTemplate::New(
-                        isolate,
-                        [](const FunctionCallbackInfo<Value> & args) {
-                            const auto & object = *static_cast<object_view_t *>(
-                                args.This()->GetAlignedPointerFromInternalField(0));
-                            const auto & method_metadata = *static_cast<function_metadata_t *>(
-                                args.Data().As<External>()->Value());
-                            auto isolate = args.GetIsolate();
-
-                            args.GetReturnValue().Set(helpers::to_v8(
-                                isolate, object.function(method_metadata.name)
-                                             ->dynamic_call(helpers::from_v8(args))));
-                        },
-                        External::New(isolate,
-                                      const_cast<function_metadata_t *>(&method_metadata))));
+                    FunctionTemplate::New(isolate, helpers::forward_exceptions<method_callback>,
+                                          External::New(isolate, const_cast<function_metadata_t *>(
+                                                                     &method_metadata))));
             }
 
             current_object->Set(helpers::to_v8_str(isolate, name), tpl->GetFunction());
@@ -190,6 +190,8 @@ void platform_v8_module_t::link(node_t & node) const
 
         return Continue;
     });
+
+    // Initialize module
 }
 
 object_ptr_t platform_v8_module_t::create_dynamic(const std::string_view & name,
@@ -245,7 +247,6 @@ void platform_v8_module_t::unload()
     }
 }
 
-Isolate * platform_v8_module_t::get_isolate() { return isolate; }
+void platform_v8_module_t::initialize() const {}
 
-UniquePersistent<Context> & platform_v8_module_t::get_context() { return context; }
 } // namespace interop

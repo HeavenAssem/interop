@@ -16,8 +16,18 @@ struct i_value_type_wrapper_t: i_type_wrapper_t {
     virtual void convert_to_type(type_e, value_t &) const = 0;
 };
 
+template <typename T>
+struct remove_pointer_type_t {
+    using type = T;
+};
+
+template <typename T>
+struct remove_pointer_type_t<T *> {
+    using type = void *;
+};
+
 template <class T, class Interface>
-struct value_type_wrapper_t: type_wrapper_t<T, Interface> {
+struct value_type_wrapper_t: type_wrapper_t<typename remove_pointer_type_t<T>::type, Interface> {
     type_e get_enumerated_type() const override { return enumerate_type<T>(); }
     bool is_convertible(type_e type) const override
     {

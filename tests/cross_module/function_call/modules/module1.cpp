@@ -54,7 +54,7 @@ int test::get()
 test::~test() { std::cout << "test object " << this << ": destructor called" << std::endl; }
 
 namespace interop {
-void INTEROP_MODULE_REGISTER()
+void interop_register()
 {
     register_function("hello_world", hello_world);
     register_function("add", add);

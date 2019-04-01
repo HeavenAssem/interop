@@ -1,6 +1,7 @@
 #pragma once
 
 #include "exceptions.h"
+#include "sfinae.hpp"
 #include "utils/typing.h"
 
 #include <cstring>
@@ -153,12 +154,6 @@ class any_basic_t {
 
     template <size_t MC, typename T>
     struct is_any<any_basic_t<MC, T>>: std::true_type {};
-
-#define not_lvalue_ref_m(T)                                                                        \
-    typename = typename std::enable_if<!std::is_lvalue_reference<T>::value>::type
-#define of_other_type_m(T) typename = typename std::enable_if<!is_any<T>::value>::type
-#define not_void_m(T) typename = typename std::enable_if<!std::is_void<T>::value>::type
-#define is_void_m(T) typename = typename std::enable_if<std::is_void<T>::value>::type
     // ---- inner utils end ----
 
     inline void reset() noexcept
@@ -484,11 +479,6 @@ class any_basic_t {
 
     ~any_basic_t() noexcept { delete_dirty(); }
 };
-
-#undef is_void_m
-#undef not_void_m
-#undef of_other_type_m
-#undef not_lvalue_ref_m
 
 // TODO: avoid mentioning template args
 template <typename T, size_t P1, class P2, class P3>

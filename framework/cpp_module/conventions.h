@@ -4,15 +4,16 @@
 
 #pragma once
 
-#define INTEROP_MODULE_INITIALIZE _interop_module_initialize
-#define INTEROP_MODULE_REGISTER _interop_module_register
-#define INTEROP_MODULE_METADATA _interop_module_metadata
-#define INTEROP_FRAMEWORK_ABI_VERSION _interop_framework_abi_version
+#define interop_link _interop_module_link
+#define interop_register _interop_module_register
 
-#define __INTEROP_STRINGIFY__(x) #x
-#define __INTEROP_STRINGIFY(x) __INTEROP_STRINGIFY__(x)
+#define interop_module_metadata_m _interop_module_metadata
+#define interop_framework_abi_version_m _interop_framework_abi_version
 
-#define INTEROP_MODULE_INITIALIZE_STR __INTEROP_STRINGIFY(INTEROP_MODULE_INITIALIZE)
-#define INTEROP_MODULE_REGISTER_STR __INTEROP_STRINGIFY(INTEROP_MODULE_REGISTER)
-#define INTEROP_MODULE_METADATA_STR __INTEROP_STRINGIFY(INTEROP_MODULE_METADATA)
-#define INTEROP_FRAMEWORK_API_VERSION_STR __INTEROP_STRINGIFY(INTEROP_FRAMEWORK_ABI_VERSION)
+#define __interop_stringify_impl_m(x) #x
+#define __interop_stringify_m(x) __interop_stringify_impl_m(x)
+
+const auto interop_module_link_c           = __interop_stringify_m(interop_link);
+const auto interop_module_register_c       = __interop_stringify_m(interop_register);
+const auto interop_module_metadata_c       = __interop_stringify_m(interop_module_metadata_m);
+const auto interop_framework_abi_version_c = __interop_stringify_m(interop_framework_abi_version_m);

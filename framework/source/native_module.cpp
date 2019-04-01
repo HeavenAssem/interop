@@ -21,13 +21,13 @@ namespace interop {
 namespace {
 version_t get_version(const shared_library & library)
 {
-    return *reinterpret_cast<version_t *>(library.symbol(INTEROP_FRAMEWORK_API_VERSION_STR));
+    return *reinterpret_cast<version_t *>(library.symbol(interop_framework_abi_version_c));
 }
 
 module_metadata_t get_metadata(const shared_library & library)
 {
     return convert_metadata_to_current(get_version(library),
-                                       library.symbol(INTEROP_MODULE_METADATA_STR));
+                                       library.symbol(interop_module_metadata_c));
 }
 } // namespace
 
@@ -40,7 +40,7 @@ native_module_t::native_module_t(shared_library && _library,
     try {
         /** registration stage begin **/
         auto register_module =
-            reinterpret_cast<register_module_function>(library.symbol(INTEROP_MODULE_REGISTER_STR));
+            reinterpret_cast<register_module_function>(library.symbol(interop_module_register_c));
         register_module();
 
         metadata = interop::get_metadata(library);
@@ -62,8 +62,8 @@ native_module_t::native_module_t(shared_library && _library,
 void native_module_t::link(node_t & node) const
 {
     try {
-        auto initialize_module = reinterpret_cast<initialize_module_function>(
-            library.symbol(INTEROP_MODULE_INITIALIZE_STR));
+        auto initialize_module =
+            reinterpret_cast<initialize_module_function>(library.symbol(interop_module_link_c));
         initialize_module(node);
     } catch (symbol_loading_error_t & e) {
         interop_logger(warning, e.what());

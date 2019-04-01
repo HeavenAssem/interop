@@ -11,22 +11,19 @@
 using namespace std;
 
 namespace interop {
-int get10() {
-    return 10;
-}
+int get10() { return 10; }
 
-int cpp_add(int a, int b) {
-    return a + b;
-}
+int cpp_add(int a, int b) { return a + b; }
 
-void INTEROP_MODULE_REGISTER() {
+void interop_register()
+{
     register_function("get10", get10);
     register_function("add", cpp_add);
 }
 
 module_context_t * ctx;
 
-void INTEROP_MODULE_INITIALIZE(module_context_t & context)
+void interop_link(module_context_t & context)
 {
     printf("module 2 initialization\n");
 

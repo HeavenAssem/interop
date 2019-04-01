@@ -52,14 +52,13 @@ struct signature_reflector_t: arguments_reflector_t<Args...> {
 };
 
 template <typename Callable>
-class function_reflector_t;
+struct function_reflector_t;
 
 template <typename R, typename... Args>
-class function_reflector_t<R (*)(Args...)> {
+struct function_reflector_t<R (*)(Args...)>: signature_reflector_t<R, Args...> {
+    using this_t       = function_reflector_t;
     using c_function_t = R (*)(Args...);
-    using reflected_t  = signature_reflector_t<R, Args...>;
 
-  public:
     static universal_wrapper_t wrap_universally()
     {
         return details::wrap_universally<c_function_t, R, Args...>();
@@ -72,8 +71,8 @@ class function_reflector_t<R (*)(Args...)> {
             nullptr,
             wrap_universally(),
             std::move(name),
-            reflected_t::arguments(),
-            reflected_t::return_type(),
+            this_t::arguments(),
+            this_t::return_type(),
         };
     }
 };

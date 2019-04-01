@@ -13,8 +13,8 @@ template <typename MemberPtr, MemberPtr member_ptr, typename C, typename R, type
           size_t... Indices>
 universal_wrapper_t wrap_universally(std::index_sequence<Indices...>)
 {
-    return [](void * object_ptr_t, arg_pack_t args) -> val_t {
-        auto & object = *static_cast<C *>(object_ptr_t);
+    return [](void * object_ptr, arg_pack_t args) -> val_t {
+        auto & object = *static_cast<C *>(object_ptr);
         if constexpr (std::is_void<R>::value) {
             (object.*member_ptr)(args[Indices].as<Args>()...);
             return {};
@@ -44,8 +44,10 @@ struct constructor_proxy_t {
 template <class... Args>
 struct constructor_t {
     template <class Class>
-    using proxy_t     = constructor_proxy_t<Class, Args...>;
-    using reflector_t = function_reflection::arguments_reflector_t<Args...>;
+    struct instantiated_t {
+        using proxy_t     = constructor_proxy_t<Class, Args...>;
+        using reflector_t = function_reflection::function_reflector_t<decltype(&proxy_t::call)>;
+    };
 };
 
 template <class Class>
@@ -53,13 +55,13 @@ struct constructor_reflector_t {
     template <class Constructor>
     static void reflect(std::vector<constructor_metadata_t> & metadata)
     {
-        using proxy_t     = typename Constructor::template proxy_t<Class>;
-        using reflector_t = typename Constructor::reflector_t;
+        using instantiated_t = typename Constructor::template instantiated_t<Class>;
+        using proxy_t        = typename instantiated_t::proxy_t;
+        using reflector_t    = typename instantiated_t::reflector_t;
 
-        metadata.push_back(constructor_metadata_t{
-            reinterpret_cast<void *>(proxy_t::call),
-            nullptr, // function_reflection::function_reflector_t<decltype(proxy_t::call)>::wrap_universally(),
-            reflector_t::arguments()});
+        metadata.push_back(constructor_metadata_t{reinterpret_cast<void *>(proxy_t::call),
+                                                  reflector_t::wrap_universally(),
+                                                  reflector_t::arguments()});
     }
 };
 

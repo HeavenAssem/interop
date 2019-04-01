@@ -29,7 +29,10 @@ class platform_v8_module_t: public base_module_t {
     const std::string & name() const override;
     void unload() override;
 
-    v8::Isolate * get_isolate();
-    v8::UniquePersistent<v8::Context> & get_context();
+    v8::Isolate * get_isolate() { return isolate; }
+    v8::UniquePersistent<v8::Context> & get_context() { return context; }
+
+  private:
+    void initialize() const;
 };
 } // namespace interop

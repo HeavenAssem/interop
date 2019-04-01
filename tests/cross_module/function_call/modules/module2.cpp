@@ -9,11 +9,11 @@
 using namespace std;
 
 namespace interop {
-void INTEROP_MODULE_REGISTER() {}
+void interop_register() {}
 
 module_context_t * ctx;
 
-void INTEROP_MODULE_INITIALIZE(module_context_t & context)
+void interop_link(module_context_t & context)
 {
     printf("module 2 initialization\n");
 

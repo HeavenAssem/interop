@@ -1,0 +1,22 @@
+{
+    "name": "cross_language.javascript.objects",
+    "platforms": {
+        "js": {
+            "execution_path": "/usr/lib/v8/",
+            "modules": [
+                {
+                    "name": "js.module",
+                    "paths": [
+                        "modules/cross_language.javascript.objects.module.js"
+                    ]
+                }
+            ]
+        }
+    },
+    "native_modules": [
+        {
+            "name": "cpp.module",
+            "path": "modules/cross_language.javascript.objects.module_cpp.so"
+        }
+    ]
+}

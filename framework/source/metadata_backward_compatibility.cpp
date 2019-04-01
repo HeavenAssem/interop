@@ -9,11 +9,11 @@ namespace interop {
 module_metadata_t convert_metadata_to_current(const version_t & version, const void * metadata)
 {
     /** version of module's interop ABI matches version of node **/
-    if (version == INTEROP_FRAMEWORK_ABI_VERSION) {
+    if (version == interop_framework_abi_version_m) {
         return *reinterpret_cast<const module_metadata_t *>(metadata);
     } else {
         throw error_t("unable to convert metadata of version " + version.to_string() +
-                      " to current format version (" + INTEROP_FRAMEWORK_ABI_VERSION.to_string() +
+                      " to current format version (" + interop_framework_abi_version_m.to_string() +
                       ")");
     }
 }

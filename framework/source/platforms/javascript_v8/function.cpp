@@ -67,8 +67,6 @@ val_t platform_function_v8_t::dynamic_call(arg_pack_t args) const
     // Enter the context
     Context::Scope context_scope(local_context);
 
-    auto global = local_context->Global();
-
     vector<Local<Value>> v8_args;
     v8_args.reserve(args.size());
 
@@ -76,7 +74,7 @@ val_t platform_function_v8_t::dynamic_call(arg_pack_t args) const
         v8_args.push_back(helpers::to_v8(isolate, arg));
     }
 
-    return from_v8(isolate, handle.Get(isolate)->Call(global, (int)v8_args.size(), v8_args.data()));
+    return call_v8(local_context, handle.Get(isolate), std::move(v8_args));
 }
 
 void platform_function_v8_t::expose_function_view(v8::Isolate * isolate,

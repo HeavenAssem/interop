@@ -41,6 +41,23 @@ inline val_t from_v8(v8::Isolate * isolate, const v8::Local<v8::Value> & value)
     return {};
 }
 
+template <typename... Args>
+inline val_t call_v8(v8::Local<v8::Context> context, v8::Local<v8::Function> func,
+                     std::vector<v8::Local<v8::Value>> args)
+{
+    v8::Isolate * isolate = context->GetIsolate();
+
+    v8::TryCatch try_catch(isolate);
+
+    v8::MaybeLocal<v8::Value> result =
+        func->Call(context, context->Global(), args.size(), args.data());
+
+    if (result.IsEmpty() && try_catch.HasCaught()) {
+        throw std::runtime_error(from_v8(isolate, try_catch.Exception()).as<std::string>());
+    }
+    return from_v8(isolate, result.FromMaybe(v8::Local<v8::Value>{}));
+}
+
 inline v8::Local<v8::Value> to_v8(v8::Isolate * isolate, const val_t & value)
 {
     const auto & type = value.type();
@@ -71,6 +88,20 @@ inline arg_pack_t from_v8(const v8::FunctionCallbackInfo<v8::Value> & v8_args)
     }
 
     return args;
+}
+
+template <v8::FunctionCallback callback>
+void forward_exceptions(const v8::FunctionCallbackInfo<v8::Value> & info)
+{
+    auto isolate = info.GetIsolate();
+    try {
+        callback(info);
+    } catch (const std::exception & e) {
+        info.GetReturnValue().Set(isolate->ThrowException(to_v8_str(isolate, e.what())));
+    } catch (...) {
+        info.GetReturnValue().Set(
+            isolate->ThrowException(to_v8_str(isolate, "unknown C++ exception")));
+    }
 }
 
 } // namespace helpers
