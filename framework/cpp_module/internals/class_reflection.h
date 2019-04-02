@@ -82,12 +82,42 @@ class member_reflector_t;
 
 template <typename R, typename C, typename... Args, R (C::*cpp_method_ptr)(Args...)>
 class member_reflector_t<R (C::*)(Args...), cpp_method_ptr> {
-    using reflected_t = function_reflection::signature_reflector_t<R, Args...>;
-    typedef R (C::*cpp_method_t)(Args...);
+    using reflected_t  = function_reflection::signature_reflector_t<R, Args...>;
+    using cpp_method_t = decltype(cpp_method_ptr);
 
     static R c_function(void * object, Args... args)
     {
         auto obj = reinterpret_cast<C *>(object);
+        return (obj->*cpp_method_ptr)(args...);
+    }
+
+  public:
+    using class_t = C;
+
+    static constexpr bool is_method = true;
+
+    static function_metadata_t reflect(std::string name)
+    {
+        return {
+            reinterpret_cast<void *>(c_function),
+            nullptr,
+            details::wrap_universally<cpp_method_t, cpp_method_ptr, C, R, Args...>(),
+            std::move(name),
+            reflected_t::arguments(),
+            reflected_t::return_type(),
+        };
+    }
+};
+
+// TODO: remove duplication
+template <typename R, typename C, typename... Args, R (C::*cpp_method_ptr)(Args...) const>
+class member_reflector_t<R (C::*)(Args...) const, cpp_method_ptr> {
+    using reflected_t  = function_reflection::signature_reflector_t<R, Args...>;
+    using cpp_method_t = decltype(cpp_method_ptr);
+
+    static R c_function(void * object, Args... args)
+    {
+        auto obj = reinterpret_cast<const C *>(object);
         return (obj->*cpp_method_ptr)(args...);
     }
 

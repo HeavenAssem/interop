@@ -21,8 +21,8 @@ class test {
       : b(a + 1)
     {}
 
-    int add1(int arg) { return arg + b; }
-    int add2(int arg1, int arg2) { return arg1 + arg2 + b; }
+    int add1(int arg) const { return arg + b; }
+    int add2(int arg1, int arg2) const { return arg1 + arg2 + b; }
     int mul_mod(int arg) { return b *= arg; }
     int get() { return b; }
     ~test();
