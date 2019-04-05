@@ -8,14 +8,14 @@
 #include "function.h"
 #include "node.h"
 
-#include <logger.h>
+#include <logger.hpp>
 #include <os.h>
 #include <utils/string.h>
 
 #include <fstream>
-#include <sstream>
-
 #include <iostream>
+#include <sstream>
+#include <thread>
 
 using namespace std;
 using namespace v8;
@@ -31,19 +31,36 @@ void constructor_callback(const FunctionCallbackInfo<Value> & args)
         isolate->ThrowException(helpers::to_v8_str(isolate, "Cannot call constructor as function"));
     }
 
+    using storage_t = std::unordered_map<object_view_t *, Persistent<Object>>;
+    thread_local storage_t storage; // Isolate is bound to thread, so do objects as result
+
     HandleScope scope(isolate);
-    auto js_object  = args.This();
-    auto js_pobject = Persistent<Object>(isolate, js_object);
+    auto js_object = args.This();
 
     // TODO: avoid conversion: get from another place
-    const auto & name = helpers::from_v8(isolate, js_object->GetConstructorName());
+    const auto & name = helpers::to_string(isolate, js_object->GetConstructorName());
 
-    auto object = module.create_dynamic(name, helpers::from_v8(args));
-    js_object->SetAlignedPointerInInternalField(0, object.get());
-    js_pobject.SetWeak(
-        object.release(),
-        [](const WeakCallbackInfo<object_view_t> & data) { delete data.GetParameter(); },
-        WeakCallbackType::kParameter);
+    auto object_ptr = module.create_dynamic(name, helpers::from_v8(args)).release();
+
+    auto & js_pobject =
+        storage.emplace(piecewise_construct, make_tuple(object_ptr), make_tuple(isolate, js_object))
+            .first->second;
+
+    js_object->SetAlignedPointerInInternalField(0, object_ptr);
+    js_object->SetAlignedPointerInInternalField(1, &storage);
+
+    js_pobject.SetWeak<void>(
+        nullptr /* unused */,
+        [](const WeakCallbackInfo<void> & data) {
+            auto object_ptr = static_cast<object_view_t *>(data.GetInternalField(0));
+            auto & storage  = *static_cast<storage_t *>(data.GetInternalField(1));
+            delete object_ptr;
+            auto it = storage.find(object_ptr);
+            interop_invariant_m(it != storage.end(), "no Persistent<> for " << object_ptr);
+            it->second.Reset();
+            storage.erase(it);
+        },
+        WeakCallbackType::kInternalFields);
 }
 
 void method_callback(const FunctionCallbackInfo<Value> & args)
@@ -171,7 +188,7 @@ void platform_v8_module_t::link(node_t & node) const
                                       External::New(isolate, module.get()));
 
             tpl->SetClassName(helpers::to_v8_str(isolate, name));
-            tpl->InstanceTemplate()->SetInternalFieldCount(2); // module_view, metadata
+            tpl->InstanceTemplate()->SetInternalFieldCount(2); // object itself, storage
 
             auto prototype = tpl->PrototypeTemplate();
 
@@ -245,6 +262,16 @@ void platform_v8_module_t::unload()
     if (isolate) {
         isolate->Dispose();
     }
+}
+
+void platform_v8_module_t::initiate_garbage_collection_for_testing() const
+{
+    isolate->LowMemoryNotification();
+    // using namespace chrono_literals;
+    // while (!isolate->IdleNotificationDeadline(0.5)) {
+    //     this_thread::sleep_for(1s);
+    // };
+    // isolate->RequestGarbageCollectionForTesting(v8::Isolate::kFullGarbageCollection);
 }
 
 void platform_v8_module_t::initialize() const {}

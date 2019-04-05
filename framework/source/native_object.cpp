@@ -6,6 +6,8 @@
 #include "internals/metadata_utils.hpp"
 #include "native_function.hpp"
 
+#include <logger.hpp>
+
 #include <algorithm>
 #include <functional>
 
@@ -29,5 +31,9 @@ function_ptr_t native_object_t::function(const string_view & name) const
     });
 }
 
-native_object_t::~native_object_t() { metadata.destructor(pointer); }
+native_object_t::~native_object_t()
+{
+    metadata.destructor(pointer);
+    interop_logger(debug, "destroyed obj");
+}
 } // namespace interop

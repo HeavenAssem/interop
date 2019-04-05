@@ -12,7 +12,7 @@
 
 #include <dirent.h>
 #include <dlfcn.h>
-#include <logger.h>
+#include <logger.hpp>
 #include <queue>
 #include <sys/stat.h>
 

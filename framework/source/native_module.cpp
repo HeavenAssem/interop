@@ -11,7 +11,7 @@
 #include "module_definitions.h"
 
 #include <exceptions.h>
-#include <logger.h>
+#include <logger.hpp>
 
 #include <algorithm>
 

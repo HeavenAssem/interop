@@ -32,6 +32,8 @@ class platform_v8_module_t: public base_module_t {
     v8::Isolate * get_isolate() { return isolate; }
     v8::UniquePersistent<v8::Context> & get_context() { return context; }
 
+    void initiate_garbage_collection_for_testing() const;
+
   private:
     void initialize() const;
 };

@@ -397,7 +397,7 @@ class any_basic_t {
     }
 
     template <typename T>
-    operator const T &() const
+    explicit operator const T &() const
     {
         return as<T>();
     }

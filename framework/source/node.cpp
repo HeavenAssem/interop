@@ -11,7 +11,7 @@
 #include <platform.h>
 
 #include <exceptions.h>
-#include <logger.h>
+#include <logger.hpp>
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>

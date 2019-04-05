@@ -7,7 +7,7 @@
 #include "module.h"
 #include "platform_factory.h"
 
-#include <logger.h>
+#include <logger.hpp>
 
 #include <libplatform/libplatform.h>
 #include <v8.h>
@@ -28,12 +28,16 @@ class platform_v8_t final: public platform_t {
     vector<unique_ptr<base_module_t>>
     initialize(const platform_configuration_t & configuration) override
     {
+        // const char * argv[] = {"--expose_gc"};
+        // int argc            = 1;
+
         V8::InitializeICUDefaultLocation(configuration.execution_path.c_str());
         V8::InitializeExternalStartupData(configuration.execution_path.c_str());
         platform  = v8::platform::CreateDefaultPlatform();
         allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
         V8::InitializePlatform(platform);
         V8::Initialize();
+        // V8::SetFlagsFromCommandLine(&argc, const_cast<char **>(argv), false);
 
         // Create a new Isolate and make it the current one.
         Isolate::CreateParams create_params;

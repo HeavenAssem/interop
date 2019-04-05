@@ -6,7 +6,7 @@
 #include "global.h"
 
 #include "exceptions.h"
-#include "logger.h"
+#include "logger.hpp"
 #include "os.h"
 
 #include <boost/filesystem/path.hpp>

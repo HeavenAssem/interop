@@ -2,7 +2,7 @@
 // Created by islam on 07.05.17.
 //
 
-#include "logger.h"
+#include "logger.hpp"
 
 #include "rlutil.h"
 
@@ -15,10 +15,8 @@ using namespace rlutil;
 void print(const string_view & prefix, const string_view & message, const string_view & location,
            int color)
 {
-    setColor(color);
-    cout << prefix << ": "
-         << "@" << location << ": " << message << endl;
-    resetColor();
+    cout << getANSIColor(color) << prefix << ": "
+         << "@" << location << ": " << message << ANSI_ATTRIBUTE_RESET << endl;
 }
 
 namespace interop {
@@ -26,7 +24,20 @@ namespace logger {
 
 bool enabled = true;
 
-void set_enabled(bool e) { enabled = e; }
+void initialize(bool e)
+{
+    if ((enabled = e)) {
+        saveDefaultColor();
+    }
+}
+
+void debug(const string_view & message, const string_view & location)
+{
+    if (!enabled) {
+        return;
+    }
+    print("<interop> debug", message, location, DARKGREY);
+}
 
 void log(const string_view & message, const string_view & location)
 {

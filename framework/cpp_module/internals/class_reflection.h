@@ -80,6 +80,9 @@ void register_destructor(object_metadata_t & metadata)
 template <typename M, M>
 class member_reflector_t;
 
+/**
+ * @brief metadata generator for non-const methods
+ */
 template <typename R, typename C, typename... Args, R (C::*cpp_method_ptr)(Args...)>
 class member_reflector_t<R (C::*)(Args...), cpp_method_ptr> {
     using reflected_t  = function_reflection::signature_reflector_t<R, Args...>;
@@ -110,6 +113,9 @@ class member_reflector_t<R (C::*)(Args...), cpp_method_ptr> {
 };
 
 // TODO: remove duplication
+/**
+ * @brief metadata generator for const methods
+ */
 template <typename R, typename C, typename... Args, R (C::*cpp_method_ptr)(Args...) const>
 class member_reflector_t<R (C::*)(Args...) const, cpp_method_ptr> {
     using reflected_t  = function_reflection::signature_reflector_t<R, Args...>;
@@ -139,6 +145,38 @@ class member_reflector_t<R (C::*)(Args...) const, cpp_method_ptr> {
     }
 };
 
+/**
+ * @brief metadata generator for const fields
+ */
+template <typename T, typename C, const T C::*cpp_member_ptr>
+class member_reflector_t<const T C::*, cpp_member_ptr> {
+    typedef const T & (*cpp_member_getter_t)(const C *);
+
+    static const T & getter(const void * object)
+    {
+        return reinterpret_cast<const C *>(object)->*cpp_member_ptr;
+    }
+
+  public:
+    using class_t = C;
+
+    static constexpr bool is_method = false;
+
+    static field_metadata_t reflect(std::string name)
+    {
+        field_metadata_t res;
+        res.type   = enumerate_type<T>();
+        res.name   = std::move(name);
+        res.size   = sizeof(T);
+        res.getter = static_cast<void *>(getter);
+        res.setter = nullptr;
+        return res;
+    }
+};
+
+/**
+ * @brief metadata generator for non-const fields
+ */
 template <typename T, typename C, T C::*cpp_member_ptr>
 class member_reflector_t<T C::*, cpp_member_ptr> {
     typedef const T & (*cpp_member_getter_t)(const C *);
@@ -171,6 +209,9 @@ class member_reflector_t<T C::*, cpp_member_ptr> {
     }
 };
 
+/**
+ * @brief metadata generator and wrapper for class
+ */
 template <class Class, typename... Constructors>
 class class_reflector_t {
     object_metadata_t & metadata;

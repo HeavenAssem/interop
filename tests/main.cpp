@@ -4,7 +4,7 @@
 
 #include <configuration.h>
 #include <global.h>
-#include <logger.h>
+#include <logger.hpp>
 #include <node.h>
 
 #include <gtest/gtest.h>
@@ -30,6 +30,8 @@ int main(int argc, char ** argv)
     if (configPath.empty()) {
         throw runtime_error("no config");
     }
+
+    interop::logger::initialize(true);
 
     interop::node_t application(interop::load_configuration(move(configPath)));
     application.link();

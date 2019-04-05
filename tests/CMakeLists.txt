@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.4)
 
-include_directories(../framework/cpp_module ../common/include)
+include_directories(${INTEROP_ROOT}/framework/cpp_module
+                    ${INTEROP_ROOT}/common/include
+                    ${INTEROP_ROOT}/framework/include
+                    ${INTEROP_ROOT}/framework/source)
 
-include_directories(${INTEROP_ROOT}/framework/include)
 add_executable(tests.node main.cpp)
 target_link_libraries(tests.node interop_framework gtest)
 

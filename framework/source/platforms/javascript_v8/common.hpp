@@ -17,28 +17,26 @@ inline v8::Local<v8::String> to_v8_str(v8::Isolate * isolate, const std::string_
     return v8_string.ToLocalChecked();
 }
 
-inline std::string from_v8(v8::Isolate * isolate, const v8::Local<v8::String> & v8_str)
+inline std::string to_string(v8::Isolate * isolate, const v8::Local<v8::Value> & v8_value)
 {
-    return *v8::String::Utf8Value(isolate, v8_str);
+    return *v8::String::Utf8Value(isolate, v8_value);
 }
 
 inline val_t from_v8(v8::Isolate * isolate, const v8::Local<v8::Value> & value)
 {
-    if (value.IsEmpty()) {
+    if (value.IsEmpty() || value->IsNullOrUndefined()) {
         return {};
     }
 
     if (value->IsBoolean()) {
-        return value->ToBoolean(isolate)->Value();
+        return value.As<v8::Boolean>()->Value();
     } else if (value->IsInt32()) { // TODO: find a better solution
-        return value->ToInt32(isolate)->Value();
-    } else if (value->IsString()) {
-        return from_v8(isolate, value->ToString(isolate));
+        return value.As<v8::Int32>()->Value();
     } else if (value->IsNumber()) {
-        return value->ToNumber(isolate)->Value();
+        return value.As<v8::Number>()->Value();
     }
 
-    return {};
+    return to_string(isolate, value);
 }
 
 template <typename... Args>
@@ -53,10 +51,11 @@ inline val_t call_v8(v8::Local<v8::Context> context, v8::Local<v8::Function> fun
         func->Call(context, context->Global(), args.size(), args.data());
 
     if (result.IsEmpty() && try_catch.HasCaught()) {
-        throw std::runtime_error(from_v8(isolate, try_catch.Exception()).as<std::string>());
+        throw std::runtime_error("JS exception: " + to_string(isolate, try_catch.Exception()));
     }
+
     return from_v8(isolate, result.FromMaybe(v8::Local<v8::Value>{}));
-}
+} // namespace helpers
 
 inline v8::Local<v8::Value> to_v8(v8::Isolate * isolate, const val_t & value)
 {

@@ -3,7 +3,7 @@
 //
 
 #include "base_module.h"
-#include "logger.h"
+#include "logger.hpp"
 
 #include <cassert>
 
