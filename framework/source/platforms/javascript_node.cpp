@@ -7,7 +7,7 @@
 #include <exceptions.h>
 
 #include <node/libplatform/libplatform.h>
-#include <node/node.h>
+#include <node/node.hpp>
 
 using namespace std;
 using namespace v8;

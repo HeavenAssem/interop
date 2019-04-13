@@ -289,7 +289,6 @@ class any_basic_t {
     }
 
   public:
-#pragma region constructors
     any_basic_t() { reset(); }
 
     template <bool NoAlloc = false, typename T>
@@ -334,8 +333,6 @@ class any_basic_t {
         move(std::move(other));
     }
 
-#pragma endregion
-
     template <typename T, typename... Args>
     inline T & emplace(Args &&... args)
     {
@@ -350,7 +347,6 @@ class any_basic_t {
         return emplace<T>(std::forward<Args>(args)...);
     }
 
-#pragma region operators
     template <typename T>
     T & operator=(const T & object)
     {
@@ -407,7 +403,6 @@ class any_basic_t {
     {
         return as<T>();
     }
-#pragma endregion
 
     constexpr static std::size_t in_place_capacity() { return sizeof(inner.in_place.memory); }
 

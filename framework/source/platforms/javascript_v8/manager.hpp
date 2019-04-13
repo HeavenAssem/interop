@@ -4,7 +4,6 @@
 
 #include <v8.h>
 
-#include <string_view>
 #include <unordered_map>
 
 namespace interop {
@@ -12,24 +11,43 @@ namespace interop {
 class class_manager_t {
   public:
     class object_manager_t {
-      public:
+        friend class_manager_t;
+
         struct object_context_t {
-            object_view_t & object;
+            object_ptr_t object;
             v8::Persistent<v8::Object> weak_ref;
+
+            object_context_t(object_ptr_t, v8::Local<v8::Object> bind_to);
         };
 
-      private:
-        std::string_view class_name;
+        class_id_t class_id;
         std::unordered_map<object_view_t *, object_context_t> managed_objects;
 
       public:
-        object_manager_t(std::string_view);
-        const std::string_view & get_class_name() const { return class_name; }
+        object_manager_t(class_id_t);
+        base_module_t & get_module() const;
+        const std::string & get_class_name() const;
+
+        void manage_lifetime(object_ptr_t, v8::Local<v8::Object> bind_to);
+
+      private:
+        static void weak_callback(const v8::WeakCallbackInfo<void> &);
     };
 
   private:
-    std::unordered_map<std::string, object_manager_t> managed_classes;
+    std::unordered_map<class_id_t, object_manager_t, class_id_hash_t> managed_classes;
 
   public:
+    class_manager_t()                        = default;
+    class_manager_t(const class_manager_t &) = delete;
+    class_manager_t(class_manager_t &&)      = delete;
+
+    class_manager_t & operator=(const class_manager_t &) = delete;
+    class_manager_t & operator=(class_manager_t &&) = delete;
+
+    object_manager_t & get_manager_for_class(class_id_t);
 };
+
+using object_manager_t = class_manager_t::object_manager_t;
+
 } // namespace interop

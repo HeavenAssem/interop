@@ -112,6 +112,8 @@ inline std::string to_string(type_e type)
         INTEROP_TYPE_ENUM(XX)
 #undef XX
     }
+
+    return "<unsupported>";
 }
 
 } // namespace interop

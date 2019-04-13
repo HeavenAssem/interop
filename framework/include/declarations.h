@@ -12,8 +12,36 @@ class platform_function_t;
 
 struct platform_configuration_t;
 
-using module_ptr              = std::unique_ptr<base_module_t>;
-using platform_ptr            = std::shared_ptr<platform_t>;
+using module_ptr_t            = std::unique_ptr<base_module_t>;
+using platform_ptr_t          = std::unique_ptr<platform_t>;
 using platform_factory_ptr    = std::shared_ptr<platform_factory_t>;
 using platform_function_ptr_t = std::shared_ptr<platform_function_t>;
+
+using module_id_t = uint16_t;
+struct class_id_t {
+    module_id_t module_id;
+    uint16_t local_id;
+};
+
+inline bool operator==(const class_id_t & lhs, const class_id_t & rhs)
+{
+    return lhs.module_id == rhs.module_id && lhs.local_id == rhs.local_id;
+}
+
+struct class_id_hash_t {
+    std::size_t operator()(const class_id_t & key) const
+    {
+        union class_id_as_t {
+            class_id_t decomposed;
+            uint32_t composed;
+
+            static_assert(sizeof(decomposed) == sizeof(composed),
+                          "different sizes of class id representations");
+        };
+
+        return std::hash<uint32_t>{}(class_id_as_t{key}.composed);
+    }
+};
+
+const module_id_t unassigned_id_c = -1;
 } // namespace interop

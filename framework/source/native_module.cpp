@@ -6,7 +6,7 @@
 #include "configuration.h"
 #include "metadata_backward_compatibility.h"
 #include "native_function.hpp"
-#include "node.h"
+#include "node.hpp"
 
 #include "module_definitions.h"
 
@@ -59,7 +59,7 @@ native_module_t::native_module_t(shared_library && _library,
     }
 }
 
-void native_module_t::link(node_t & node) const
+void native_module_t::link(node_t & node)
 {
     try {
         auto initialize_module =
@@ -72,7 +72,7 @@ void native_module_t::link(node_t & node) const
 
 object_ptr_t native_module_t::create_dynamic(const std::string_view & name, arg_pack_t args) const
 {
-    const auto & metadata = get_object_metadata(name);
+    const auto & metadata = module_view_t::get_object_metadata(name);
 
     interop_invariant_m(!metadata.constructors.empty(), "empty constructors past validation");
 

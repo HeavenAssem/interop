@@ -5,6 +5,7 @@
 #pragma once
 
 #include "base_module.h"
+#include "manager.hpp"
 
 #include <v8.h>
 
@@ -16,12 +17,13 @@ class platform_v8_module_t: public base_module_t {
 
     v8::Isolate * isolate = nullptr;
     v8::UniquePersistent<v8::Context> context;
+    class_manager_t class_manager;
 
   public:
     platform_v8_module_t(v8::Isolate * isolate, const platform_module_configuration_t &);
     ~platform_v8_module_t();
 
-    void link(node_t & node) const override;
+    void link(node_t & node) override;
 
     object_ptr_t create_dynamic(const std::string_view & name, arg_pack_t) const override;
     void listen(const std::string_view & module_name, std::function<void()> && handler) override;

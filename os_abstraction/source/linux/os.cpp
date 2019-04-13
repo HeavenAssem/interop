@@ -69,7 +69,7 @@ lazy_sequence_t<string> walk(const string_view & path, const string_view & exten
     queue<pair<DIR *, boost::filesystem::path>> dirs;
     dirs.push({dp, boost::filesystem::path(path.data())});
 
-    return lazy_sequence_t<string>([=]() mutable {
+    return [=]() mutable {
         while (!dirs.empty()) {
             auto [dir, base_path] = dirs.front();
 
@@ -98,7 +98,7 @@ lazy_sequence_t<string> walk(const string_view & path, const string_view & exten
                 }
 
                 if (boost::algorithm::ends_with(entry->d_name, extension.data())) {
-                    return (base_path / entry->d_name).string();
+                    return lazy_sequence_t<string>::value_t{(base_path / entry->d_name).string()};
                 }
             }
 
@@ -106,8 +106,8 @@ lazy_sequence_t<string> walk(const string_view & path, const string_view & exten
             closedir(dir);
         }
 
-        throw lazy_sequence_end_t();
-    });
+        return lazy_sequence_t<string>::value_t{};
+    };
 }
 
 entry_type_e get_entry_type(const string_view & path)

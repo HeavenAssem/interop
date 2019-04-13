@@ -4,6 +4,7 @@
 //
 
 #include <functional>
+#include <optional>
 
 namespace interop {
 class lazy_sequence_end_t: public std::exception {
@@ -19,7 +20,11 @@ class lazy_sequence_started_t: public std::exception {
 
 template <class T>
 class lazy_sequence_t {
-    std::function<T()> generator;
+  public:
+    using value_t = std::optional<T>;
+
+  private:
+    std::function<value_t()> generator;
     bool started;
 
   public:
@@ -27,46 +32,36 @@ class lazy_sequence_t {
         friend lazy_sequence_t;
 
         lazy_sequence_t & sequence;
-        T value;
-        bool is_end;
+        value_t value;
 
-        iterator_t(lazy_sequence_t & sequence)
+        iterator_t(lazy_sequence_t & sequence, value_t && value)
           : sequence(sequence)
-        {
-            ++(*this);
-        }
-
-        iterator_t(lazy_sequence_t & sequence, bool is_end)
-          : sequence(sequence)
-          , is_end(is_end)
+          , value(value)
         {}
 
       public:
         iterator_t & operator++()
         {
-            try {
-                value = sequence.generator();
-            } catch (const lazy_sequence_end_t &) {
-                is_end = true;
+            if (auto next = sequence.generator()) {
+                value.emplace(std::move(*next));
+            } else {
+                value.reset();
             }
             return *this;
         }
 
         bool operator==(const iterator_t & other) const noexcept
         {
-            if (this == &other) {
-                return true;
-            }
-
-            return is_end && other.is_end;
+            return &sequence == &other.sequence && (value.has_value() == other.value.has_value());
         }
 
         bool operator!=(const iterator_t & other) const noexcept { return !((*this) == other); }
 
-        T & operator*() noexcept { return value; }
+        T & operator*() noexcept { return *value; }
     };
 
-    lazy_sequence_t(std::function<T()> && generator)
+    template <typename Fn>
+    lazy_sequence_t(Fn && generator)
       : generator(std::move(generator))
       , started(false)
     {}
@@ -80,9 +75,9 @@ class lazy_sequence_t {
             throw lazy_sequence_started_t();
         }
         started = true;
-        return {*this};
+        return {*this, generator()};
     }
 
-    iterator_t end() { return {*this, true}; }
+    iterator_t end() { return {*this, std::nullopt}; }
 };
 } // namespace interop

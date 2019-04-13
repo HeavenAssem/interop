@@ -23,7 +23,7 @@ class native_module_t: public base_module_t {
     native_module_t(const native_module_t &) = delete;
     native_module_t(native_module_t &&) noexcept;
 
-    void link(node_t &) const override;
+    void link(node_t &) override;
     object_ptr_t create_dynamic(const std::string_view & name, arg_pack_t) const override;
 
     void listen(const std::string_view & module_name, std::function<void()> && handler) override;

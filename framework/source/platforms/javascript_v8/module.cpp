@@ -6,7 +6,7 @@
 #include "common.hpp"
 #include "configuration.h"
 #include "function.h"
-#include "node.h"
+#include "node.hpp"
 
 #include <logger.hpp>
 #include <os.h>
@@ -24,43 +24,24 @@ namespace interop {
 
 void constructor_callback(const FunctionCallbackInfo<Value> & args)
 {
-    auto isolate        = args.GetIsolate();
-    const auto & module = *static_cast<const base_module_t *>(args.Data().As<External>()->Value());
+    auto isolate   = args.GetIsolate();
+    auto & manager = *static_cast<object_manager_t *>(args.Data().As<External>()->Value());
+    auto & module  = manager.get_module();
+    auto & name    = manager.get_class_name();
 
     if (!args.IsConstructCall()) {
         isolate->ThrowException(helpers::to_v8_str(isolate, "Cannot call constructor as function"));
     }
 
-    using storage_t = std::unordered_map<object_view_t *, Persistent<Object>>;
-    thread_local storage_t storage; // Isolate is bound to thread, so do objects as result
-
     HandleScope scope(isolate);
-    auto js_object = args.This();
 
-    // TODO: avoid conversion: get from another place
-    const auto & name = helpers::to_string(isolate, js_object->GetConstructorName());
+    auto js_object  = args.This();
+    auto object_ptr = module.create_dynamic(name, helpers::from_v8(args));
 
-    auto object_ptr = module.create_dynamic(name, helpers::from_v8(args)).release();
+    js_object->SetAlignedPointerInInternalField(0, object_ptr.get());
+    js_object->SetAlignedPointerInInternalField(1, &manager);
 
-    auto & js_pobject =
-        storage.emplace(piecewise_construct, make_tuple(object_ptr), make_tuple(isolate, js_object))
-            .first->second;
-
-    js_object->SetAlignedPointerInInternalField(0, object_ptr);
-    js_object->SetAlignedPointerInInternalField(1, &storage);
-
-    js_pobject.SetWeak<void>(
-        nullptr /* unused */,
-        [](const WeakCallbackInfo<void> & data) {
-            auto object_ptr = static_cast<object_view_t *>(data.GetInternalField(0));
-            auto & storage  = *static_cast<storage_t *>(data.GetInternalField(1));
-            delete object_ptr;
-            auto it = storage.find(object_ptr);
-            interop_invariant_m(it != storage.end(), "no Persistent<> for " << object_ptr);
-            it->second.Reset();
-            storage.erase(it);
-        },
-        WeakCallbackType::kInternalFields);
+    manager.manage_lifetime(std::move(object_ptr), js_object);
 }
 
 void method_callback(const FunctionCallbackInfo<Value> & args)
@@ -136,7 +117,7 @@ platform_v8_module_t::platform_v8_module_t(Isolate * isolate,
 
 platform_v8_module_t::~platform_v8_module_t() {}
 
-void platform_v8_module_t::link(node_t & node) const
+void platform_v8_module_t::link(node_t & node)
 {
     // Enter the isolate
     v8::Isolate::Scope isolate_scope(isolate);
@@ -150,12 +131,12 @@ void platform_v8_module_t::link(node_t & node) const
     auto global = local_context->Global();
 
     // Expose all modules
-    node.for_each_module([&](const module_ptr & module) {
-        if (module.get() == this) {
-            return Continue;
+    for (auto & [module_id, module] : node.iterate_modules()) {
+        if (&module == this) {
+            continue;
         }
 
-        const auto & metadata = module->get_metadata();
+        const auto & metadata = module.get_metadata();
 
         auto current_object = global;
         auto path           = utils::split_rx(metadata.name, "\\.");
@@ -177,22 +158,22 @@ void platform_v8_module_t::link(node_t & node) const
 
         for (const auto & function_metadata : metadata.functions) {
             platform_function_v8_t::expose_function_view(isolate, current_object, local_context,
-                                                         module->function(function_metadata.name));
+                                                         module.function(function_metadata.name));
         }
 
-        for (const auto & type_metadata : metadata.types) {
-            const auto & name = type_metadata.name;
+        for (const auto & [class_id, class_metadata] : module.iterate_classes()) {
+            const auto & name = class_metadata.name;
 
-            auto tpl =
-                FunctionTemplate::New(isolate, helpers::forward_exceptions<constructor_callback>,
-                                      External::New(isolate, module.get()));
+            auto tpl = FunctionTemplate::New(
+                isolate, helpers::forward_exceptions<constructor_callback>,
+                External::New(isolate, &class_manager.get_manager_for_class(class_id)));
 
             tpl->SetClassName(helpers::to_v8_str(isolate, name));
             tpl->InstanceTemplate()->SetInternalFieldCount(2); // object itself, storage
 
             auto prototype = tpl->PrototypeTemplate();
 
-            for (const auto & method_metadata : type_metadata.methods) {
+            for (const auto & method_metadata : class_metadata.methods) {
                 // Add object properties to the prototype
                 // Methods, Properties, etc.
                 prototype->Set(
@@ -204,9 +185,7 @@ void platform_v8_module_t::link(node_t & node) const
 
             current_object->Set(helpers::to_v8_str(isolate, name), tpl->GetFunction());
         }
-
-        return Continue;
-    });
+    }
 
     // Initialize module
 }

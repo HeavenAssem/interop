@@ -4,6 +4,7 @@
 
 #include "platform_factory.h"
 #include "exceptions.h"
+#include "platform.h"
 
 #include <unordered_map>
 
@@ -22,7 +23,7 @@ platform_registrator::platform_registrator(const std::string & id, platform_fact
     stored_platform = move(platform);
 }
 
-platform_ptr instantiate_platform(const std::string & id)
+platform_ptr_t instantiate_platform(const std::string & id)
 {
     if (const auto & wrapped_platform = platforms[id]) {
         return wrapped_platform->instantiate();

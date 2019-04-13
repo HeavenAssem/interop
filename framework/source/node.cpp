@@ -2,7 +2,7 @@
 // Created by islam on 07.05.17.
 //
 
-#include "node.h"
+#include "node.hpp"
 #include "configuration.h"
 #include "native_module.h"
 #include "platform_factory.h"
@@ -15,13 +15,15 @@
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/scope_exit.hpp>
 
 using namespace std;
 namespace fs = boost::filesystem;
 
 namespace interop {
-
-// std::unordered_map<std::string, std::shared_ptr<native_module_t>> node_t::global_scope {};
+namespace {
+unique_ptr<node_t> node_instance_ptr;
+}
 
 node_t::node_t(const node_configuration_t & configuration)
 {
@@ -36,13 +38,17 @@ node_t::node_t(const node_configuration_t & configuration)
         }
     }
 
-    for (const auto & id_platform_configuration : configuration.platform_configurations) {
-        const auto & [id, platform_configuration] = id_platform_configuration;
+    for (const auto & [id, platform_configuration] : configuration.platform_configurations) {
+        auto platform = instantiate_platform(id);
+        for (auto & module_ptr : platform->initialize(platform_configuration)) {
+            module_ptr->assign_id(modules.size());
 
-        auto & platform = platforms[id] = instantiate_platform(id);
-        for (auto & module : platform->initialize(platform_configuration)) {
-            local_scope[module->name()] = move(module);
+            modules_by_name[module_ptr->name()] = module_ptr.get();
+            modules.push_back(std::move(module_ptr));
         }
+
+        platforms_by_name[id] = platform.get();
+        platforms.push_back(std::move(platform));
     }
 
     // for (auto filename : os::walk(directory, os::library_extension, os::Recursive, os::File)) {
@@ -52,12 +58,30 @@ node_t::node_t(const node_configuration_t & configuration)
     interop_logger(log, "created node '" + name + "'");
 }
 
-node_t::node_t(node_t &&) { throw not_implemented("node_t::move ctor"); }
+node_t & node_t::start(const node_configuration_t & configuration)
+{
+    if (node_instance_ptr) {
+        throw error_t("node hes already started");
+    }
+
+    node_instance_ptr.reset(new node_t(configuration));
+
+    return *node_instance_ptr;
+}
+
+node_t & node_t::get()
+{
+    if (!node_instance_ptr) {
+        throw error_t("no node instance");
+    }
+
+    return *node_instance_ptr;
+}
 
 module_view_t & node_t::get(const std::string & name)
 {
     try {
-        return *local_scope.at(name);
+        return *modules_by_name.at(name);
     } catch (const out_of_range &) {
         throw module_lookup_error_t("module with name '" + name + "' was not registered");
     }
@@ -70,7 +94,8 @@ void node_t::unload(bool forced)
     if (forced) {
         forced_unload();
     } else {
-        for (auto it = local_scope.begin(); it != local_scope.end(); it = local_scope.erase(it)) {
+        for (auto it = modules_by_name.begin(); it != modules_by_name.end();
+             it      = modules_by_name.erase(it)) {
             auto & module_name    = it->first;
             auto & module_pointer = it->second;
 
@@ -83,7 +108,8 @@ void node_t::unload(bool forced)
 
 void node_t::forced_unload() noexcept
 {
-    for (auto it = local_scope.begin(); it != local_scope.end(); it = local_scope.erase(it)) {
+    for (auto it = modules_by_name.begin(); it != modules_by_name.end();
+         it      = modules_by_name.erase(it)) {
         auto & module_name    = it->first;
         auto & module_pointer = it->second;
 
@@ -99,28 +125,43 @@ void node_t::forced_unload() noexcept
 
 void node_t::link()
 {
-    for (auto & [_, module] : local_scope) {
+    for (auto & [_, module] : modules_by_name) {
         module->link(*this);
     }
 }
 
-void node_t::for_each_module(std::function<iteration_status_e(const module_ptr &)> fn)
+node_t::modules_sequence_t node_t::iterate_modules()
 {
-    for (const auto & name_module : local_scope) {
-        if (fn(name_module.second) == Done) {
-            return;
+    return [this, module_id = module_id_t{}]() mutable -> modules_sequence_t::value_t {
+        BOOST_SCOPE_EXIT(&module_id) { ++module_id; }
+        BOOST_SCOPE_EXIT_END
+
+        for (; module_id < modules.size(); ++module_id) {
+            if (const auto & module_ptr = modules[module_id]) {
+                return {{module_id, *module_ptr}};
+            }
         }
-    }
+
+        return {};
+    };
+}
+
+base_module_t & node_t::get(module_id_t id)
+{
+    interop_invariant_m(id < modules.size(), "invalid module id" << id);
+    return *modules[id];
 }
 
 void node_t::load_native_module(const native_module_configuration_t & configuration)
 {
     auto library_instance = shared_library(configuration.path.c_str());
-    auto module           = make_unique<native_module_t>(move(library_instance), configuration);
+    auto module_ptr = make_unique<native_module_t>(std::move(library_instance), configuration);
 
-    interop_logger(log, "registered native module '" + module->name() + "'");
+    module_ptr->assign_id(modules.size());
 
-    local_scope[module->name()] = move(module);
-    // global_scope[module->name()] = module;
+    interop_logger(log, "registered native module '" + module_ptr->name() + "'");
+
+    modules_by_name[module_ptr->name()] = module_ptr.get();
+    modules.push_back(std::move(module_ptr));
 }
 } // namespace interop

@@ -12,8 +12,8 @@
 namespace interop {
 class platform_factory_t {
   public:
-    virtual platform_ptr instantiate() = 0;
-    virtual ~platform_factory_t()      = default;
+    virtual platform_ptr_t instantiate() = 0;
+    virtual ~platform_factory_t()        = default;
 };
 
 template <class Platform>
@@ -22,7 +22,7 @@ class wrapped_platform final: public platform_factory_t {
                   "platform must be derived from interop::platform");
 
   public:
-    platform_ptr instantiate() override { return std::make_shared<Platform>(); }
+    platform_ptr_t instantiate() override { return std::make_unique<Platform>(); }
 };
 
 template <class Platform>
@@ -35,7 +35,7 @@ struct platform_registrator {
     platform_registrator(const std::string & id, platform_factory_ptr platform);
 };
 
-platform_ptr instantiate_platform(const std::string & id);
+platform_ptr_t instantiate_platform(const std::string & id);
 } // namespace interop
 
 #define register_platform_as(ID, PLATFORM)                                                         \

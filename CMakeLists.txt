@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.4)
 project(interop)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_COMPILER /usr/bin/clang++)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
 set(INTEROP_ROOT ${PROJECT_SOURCE_DIR})

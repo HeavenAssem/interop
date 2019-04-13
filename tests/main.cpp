@@ -5,7 +5,7 @@
 #include <configuration.h>
 #include <global.h>
 #include <logger.hpp>
-#include <node.h>
+#include <node.hpp>
 
 #include <gtest/gtest.h>
 
@@ -33,7 +33,7 @@ int main(int argc, char ** argv)
 
     interop::logger::initialize(true);
 
-    interop::node_t application(interop::load_configuration(move(configPath)));
+    auto & application = interop::node_t::start(interop::load_configuration(move(configPath)));
     application.link();
 
     global::Testing = true;
