@@ -1,38 +1,44 @@
 #include "object.hpp"
 #include "common.hpp"
+#include "function.h"
+#include "module.h"
 
-#include <object_view.hpp>
-
-#include <v8.h>
-
+using namespace std;
 using namespace v8;
 
-// namespace interop {
-// namespace {
-/*
- * Construct a new c++ object and wrap it in a js object
- */
-// template <typename T, typename... Args>
-// Persistent<Object> make_object(Handle<Object> object, Args &&... args)
-// {
-//     auto x   = new T(std::forward<Args>(args)...);
-//     auto obj = Persistent<Object>::New(object);
-//     obj->SetInternalField(0, External::New(x));
+namespace interop {
+platform_v8_object_t::platform_v8_object_t(string name, Local<Object> handle,
+                                           platform_v8_module_t & module)
+  : platform_object_t(move(name))
+  , handle(module.get_isolate(), handle)
+  , module(module)
+{}
 
-//     obj.SetWeak(x, [](Persistent<Value> obj, void * data) {
-//         auto x = static_cast<T *>(data);
-//         delete x;
+function_ptr_t platform_v8_object_t::function(const std::string_view & name) const
+{
+    auto isolate = module.get_isolate();
 
-//         obj.Dispose();
-//         obj.Clear();
-//     });
+    // Enter the isolate
+    Isolate::Scope isolate_scope(isolate);
+    // Create a stack-allocated handle scope.
+    HandleScope handle_scope(isolate);
 
-//     return obj;
-// }
-// } // namespace
+    auto local_context = module.get_context();
 
-// void expose_object_view(Isolate * isolate, const object_view_t & object_view)
-// {
+    // Enter the context
+    Context::Scope context_scope(local_context);
 
-// }
-// } // namespace
+    auto object = handle.Get(isolate);
+
+    auto property = object->Get(local_context, helpers::to_v8_str(isolate, name)).ToLocalChecked();
+
+    if (!property->IsFunction()) {
+        throw error_t(object_name + "." + name.data() + " is not a function");
+    }
+
+    return make_shared<platform_v8_function_t>(name.data(), property.As<Function>(), *this);
+}
+
+Local<Object> platform_v8_object_t::get_handle() const { return handle.Get(module.get_isolate()); }
+
+} // namespace interop

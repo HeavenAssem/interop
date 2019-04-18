@@ -2,6 +2,7 @@
 
 #include <declarations.h>
 #include <exceptions.h>
+#include <logger.hpp>
 
 #include <v8.h>
 
@@ -39,23 +40,52 @@ inline val_t from_v8(v8::Isolate * isolate, const v8::Local<v8::Value> & value)
     return to_string(isolate, value);
 }
 
-template <typename... Args>
-inline val_t call_v8(v8::Local<v8::Context> context, v8::Local<v8::Function> func,
-                     std::vector<v8::Local<v8::Value>> args)
+inline val_t call_v8(v8::Local<v8::Context> context, v8::Local<v8::Value> recv,
+                     v8::Local<v8::Function> func, std::vector<v8::Local<v8::Value>> args)
 {
     v8::Isolate * isolate = context->GetIsolate();
 
     v8::TryCatch try_catch(isolate);
 
-    v8::MaybeLocal<v8::Value> result =
-        func->Call(context, context->Global(), args.size(), args.data());
+    v8::MaybeLocal<v8::Value> result = func->Call(context, recv, args.size(), args.data());
 
-    if (result.IsEmpty() && try_catch.HasCaught()) {
+    if (try_catch.HasCaught()) {
+        throw error_t("JS exception: " + to_string(isolate, try_catch.Exception()));
+    }
+
+    interop_invariant_m(!result.IsEmpty(), "no exception caught, but MaybeLocal is empty");
+
+    return from_v8(isolate, result.ToLocalChecked());
+}
+
+inline val_t call_v8(v8::Local<v8::Context> context, v8::Local<v8::Function> func,
+                     std::vector<v8::Local<v8::Value>> args)
+{
+    return call_v8(context, context->Global(), func, std::move(args));
+}
+
+inline v8::Local<v8::Object> call_v8_as_constructor(v8::Local<v8::Context> context,
+                                                    v8::Local<v8::Function> func,
+                                                    std::vector<v8::Local<v8::Value>> args)
+{
+    v8::Isolate * isolate = context->GetIsolate();
+
+    v8::TryCatch try_catch(isolate);
+
+    v8::MaybeLocal<v8::Object> result = func->NewInstance(context, args.size(), args.data());
+
+    if (try_catch.HasCaught()) {
         throw std::runtime_error("JS exception: " + to_string(isolate, try_catch.Exception()));
     }
 
-    return from_v8(isolate, result.FromMaybe(v8::Local<v8::Value>{}));
-} // namespace helpers
+    interop_invariant_m(!result.IsEmpty(), "no exception caught, but MaybeLocal is empty");
+
+    v8::Local<v8::Object> local = result.ToLocalChecked();
+
+    interop_invariant_m(!local.IsEmpty(), "NewInstance returned empty Local");
+
+    return local;
+}
 
 inline v8::Local<v8::Value> to_v8(v8::Isolate * isolate, const val_t & value)
 {
@@ -74,6 +104,18 @@ inline v8::Local<v8::Value> to_v8(v8::Isolate * isolate, const val_t & value)
     } else {
         return v8::Undefined(isolate);
     }
+}
+
+inline std::vector<v8::Local<v8::Value>> to_v8(v8::Isolate * isolate, arg_pack_t args)
+{
+    std::vector<v8::Local<v8::Value>> v8_args;
+    v8_args.reserve(args.size());
+
+    for (const auto & arg : args) {
+        v8_args.push_back(helpers::to_v8(isolate, arg));
+    }
+
+    return v8_args;
 }
 
 inline arg_pack_t from_v8(const v8::FunctionCallbackInfo<v8::Value> & v8_args)

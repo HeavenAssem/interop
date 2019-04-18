@@ -70,7 +70,7 @@ void native_module_t::link(node_t & node)
     }
 }
 
-object_ptr_t native_module_t::create_dynamic(const std::string_view & name, arg_pack_t args) const
+object_ptr_t native_module_t::create_dynamic(const std::string_view & name, arg_pack_t args)
 {
     const auto & metadata = module_view_t::get_object_metadata(name);
 

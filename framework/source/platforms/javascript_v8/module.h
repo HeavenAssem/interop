@@ -25,14 +25,14 @@ class platform_v8_module_t: public base_module_t {
 
     void link(node_t & node) override;
 
-    object_ptr_t create_dynamic(const std::string_view & name, arg_pack_t) const override;
+    object_ptr_t create_dynamic(const std::string_view & name, arg_pack_t) override;
     void listen(const std::string_view & module_name, std::function<void()> && handler) override;
     function_ptr_t fetch_function(const std::string_view & name) override;
     const std::string & name() const override;
     void unload() override;
 
-    v8::Isolate * get_isolate() { return isolate; }
-    v8::UniquePersistent<v8::Context> & get_context() { return context; }
+    v8::Isolate * get_isolate() const { return isolate; }
+    v8::Local<v8::Context> get_context() const { return context.Get(isolate); }
 
     void initiate_garbage_collection_for_testing() const;
 

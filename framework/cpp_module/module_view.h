@@ -48,7 +48,7 @@ class module_view_t {
         return object_view_t::create(constructor(std::forward<Args>(args)...), metadata);
     }
 
-    virtual object_ptr_t create_dynamic(const std::string_view & name, arg_pack_t) const        = 0;
+    virtual object_ptr_t create_dynamic(const std::string_view & name, arg_pack_t)              = 0;
     virtual void listen(const std::string_view & module_name, std::function<void()> && handler) = 0;
     virtual const std::string & name() const                                                    = 0;
     virtual ~module_view_t() = default;

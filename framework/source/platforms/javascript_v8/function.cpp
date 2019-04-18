@@ -5,6 +5,7 @@
 #include "function.h"
 #include "common.hpp"
 #include "module.h"
+#include "object.hpp"
 
 using namespace std;
 using namespace v8;
@@ -46,14 +47,21 @@ void exposed_function_callback(const FunctionCallbackInfo<Value> & info)
 /*----------->> utility <<------------*/
 } // namespace
 
-platform_function_v8_t::platform_function_v8_t(std::string name, Handle<Function> && handle,
-                                               platform_v8_module_t & module)
+platform_v8_function_t::platform_v8_function_t(std::string name, Local<Function> handle,
+                                               const platform_v8_module_t & module)
   : platform_function_t(std::move(name))
   , handle(module.get_isolate(), handle)
   , module(module)
 {}
 
-val_t platform_function_v8_t::dynamic_call(arg_pack_t args) const
+platform_v8_function_t::platform_v8_function_t(std::string name, Local<Function> handle,
+                                               const platform_v8_object_t & object)
+  : platform_v8_function_t(std::move(name), handle, object.get_module())
+{
+    this->object = &object;
+}
+
+val_t platform_v8_function_t::dynamic_call(arg_pack_t args) const
 {
     auto isolate = module.get_isolate();
 
@@ -62,24 +70,37 @@ val_t platform_function_v8_t::dynamic_call(arg_pack_t args) const
     // Create a stack-allocated handle scope.
     HandleScope handle_scope(isolate);
 
-    auto local_context = module.get_context().Get(isolate);
+    auto local_context = module.get_context();
 
     // Enter the context
     Context::Scope context_scope(local_context);
 
-    vector<Local<Value>> v8_args;
-    v8_args.reserve(args.size());
+    Local<Value> recv = object ? object->get_handle() : local_context->Global();
 
-    for (const auto & arg : args) {
-        v8_args.push_back(helpers::to_v8(isolate, arg));
-    }
-
-    return call_v8(local_context, handle.Get(isolate), std::move(v8_args));
+    return call_v8(local_context, recv, handle.Get(isolate),
+                   helpers::to_v8(isolate, std::move(args)));
 }
 
-void platform_function_v8_t::expose_function_view(v8::Isolate * isolate,
-                                                  v8::Local<v8::Object> object,
-                                                  v8::Local<v8::Context> context,
+Local<Object> platform_v8_function_t::constructor_call(arg_pack_t args) const
+{
+    auto isolate = module.get_isolate();
+
+    // Enter the isolate
+    Isolate::Scope isolate_scope(isolate);
+    // Create a stack-allocated handle scope.
+    EscapableHandleScope handle_scope(isolate);
+
+    auto local_context = module.get_context();
+
+    // Enter the context
+    Context::Scope context_scope(local_context);
+
+    return handle_scope.Escape(call_v8_as_constructor(local_context, handle.Get(isolate),
+                                                      helpers::to_v8(isolate, std::move(args))));
+}
+
+void platform_v8_function_t::expose_function_view(Isolate * isolate, Local<Object> object,
+                                                  Local<Context> context,
                                                   const function_ptr_t & function)
 {
     // FIXME: return value is probably useful

@@ -4,11 +4,12 @@
 
 #include "module.h"
 #include "common.hpp"
-#include "configuration.h"
 #include "function.h"
-#include "node.hpp"
+#include "object.hpp"
 
+#include <configuration.h>
 #include <logger.hpp>
+#include <node.hpp>
 #include <os.h>
 #include <utils/string.h>
 
@@ -157,7 +158,7 @@ void platform_v8_module_t::link(node_t & node)
         }
 
         for (const auto & function_metadata : metadata.functions) {
-            platform_function_v8_t::expose_function_view(isolate, current_object, local_context,
+            platform_v8_function_t::expose_function_view(isolate, current_object, local_context,
                                                          module.function(function_metadata.name));
         }
 
@@ -190,12 +191,21 @@ void platform_v8_module_t::link(node_t & node)
     // Initialize module
 }
 
-object_ptr_t platform_v8_module_t::create_dynamic(const std::string_view & name,
-                                                  arg_pack_t args) const
+object_ptr_t platform_v8_module_t::create_dynamic(const std::string_view & name, arg_pack_t args)
 {
-    std::ignore = name;
-    std::ignore = args;
-    throw not_implemented("platform_v8_module_t::create_dynamic");
+    // Enter the isolate
+    v8::Isolate::Scope isolate_scope(isolate);
+    // Create a stack-allocated handle scope.
+    HandleScope handle_scope(isolate);
+
+    auto local_context = context.Get(isolate);
+    // Enter the context
+    Context::Scope context_scope(local_context);
+
+    auto constructor = dynamic_pointer_cast<platform_v8_function_t>(function(name));
+
+    return make_unique<platform_v8_object_t>(name.data(), constructor->constructor_call(move(args)),
+                                             *this);
 }
 
 void platform_v8_module_t::listen(const std::string_view & module_name,
@@ -220,12 +230,17 @@ function_ptr_t platform_v8_module_t::fetch_function(const std::string_view & nam
     auto global = local_context->Global();
     auto value  = global->Get(helpers::to_v8_str(isolate, name));
 
+    bool has = global->HasOwnProperty(local_context, helpers::to_v8_str(isolate, name)).ToChecked();
+
+    interop_logger(debug, has ? "has" : "misses");
+
     if (!value->IsFunction()) {
         throw function_lookup_error_t("function '"s + name.data() + "' was not found in module '" +
-                                      this->name() + "'");
+                                      this->name() +
+                                      "'; found instead: " + helpers::to_string(isolate, value));
     }
 
-    return make_shared<platform_function_v8_t>(name.data(), Handle<Function>::Cast(value), *this);
+    return make_shared<platform_v8_function_t>(name.data(), value.As<Function>(), *this);
 }
 
 const string & platform_v8_module_t::name() const { return metadata.name; }
