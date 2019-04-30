@@ -14,7 +14,7 @@
 using namespace std;
 
 namespace interop {
-shared_library::shared_library(const std::string_view & path, const std::string_view & name)
+shared_library_t::shared_library_t(const std::string_view & path, const std::string_view & name)
 {
     this->handle = os::load_library(path);
     this->library_name =
@@ -23,7 +23,7 @@ shared_library::shared_library(const std::string_view & path, const std::string_
                             path.data() + "\"");
 }
 
-shared_library::shared_library(shared_library && other) noexcept
+shared_library_t::shared_library_t(shared_library_t && other) noexcept
 {
     this->handle       = other.handle;
     this->library_name = other.library_name;
@@ -31,7 +31,7 @@ shared_library::shared_library(shared_library && other) noexcept
     other.reset();
 }
 
-shared_library::~shared_library()
+shared_library_t::~shared_library_t()
 {
     if (handle) {
         interop_logger(
@@ -45,14 +45,14 @@ shared_library::~shared_library()
     }
 }
 
-library_symbol_handle shared_library::symbol(const string_view & name) const
+library_symbol_handle shared_library_t::symbol(const string_view & name) const
 {
     return os::load_symbol(handle, name);
 }
 
-const std::string & shared_library::name() const { return library_name; }
+const std::string & shared_library_t::name() const { return library_name; }
 
-void shared_library::unload()
+void shared_library_t::unload()
 {
     if (handle) {
         try {
@@ -71,13 +71,13 @@ void shared_library::unload()
     }
 }
 
-void shared_library::reset() noexcept
+void shared_library_t::reset() noexcept
 {
     handle       = nullptr;
     library_name = "unknown";
 }
 
-shared_library::operator bool() const noexcept { return bool(handle); }
+shared_library_t::operator bool() const noexcept { return bool(handle); }
 
-bool shared_library::operator!() const noexcept { return !bool(*this); }
+bool shared_library_t::operator!() const noexcept { return !bool(*this); }
 } // namespace interop

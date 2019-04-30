@@ -25,7 +25,7 @@ class class_manager_t {
 
       public:
         object_manager_t(class_id_t);
-        base_module_t & get_module() const;
+        native_module_t & get_module() const;
         const std::string & get_class_name() const;
 
         void manage_lifetime(object_ptr_t, v8::Local<v8::Object> bind_to);

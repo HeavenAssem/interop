@@ -25,7 +25,7 @@ class platform_v8_t final: public platform_t {
 
   public:
     /*-----------<< public interface implementation >>------------*/
-    vector<unique_ptr<base_module_t>>
+    vector<unique_ptr<internal_module_t>>
     initialize(const platform_configuration_t & configuration) override
     {
         // const char * argv[] = {"--expose_gc"};
@@ -44,7 +44,7 @@ class platform_v8_t final: public platform_t {
         create_params.array_buffer_allocator = allocator;
 
         unordered_set<string> names;
-        vector<unique_ptr<base_module_t>> modules;
+        vector<unique_ptr<internal_module_t>> modules;
         modules.reserve(configuration.module_configurations.size());
 
         for (const auto & module_configuration : configuration.module_configurations) {

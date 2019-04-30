@@ -60,13 +60,13 @@ struct function_view_t {
                                   native->context, std::forward<Args>(args)...)
                             : details::function_cast<R, Args...>(native->pointer)(
                                   std::forward<Args>(args)...)
-                      : dynamic_call(arg_pack_t{std::forward<Args>(args)...}).as<R>();
+                      : call_dynamic(arg_pack_t{std::forward<Args>(args)...}).as<R>();
     }
 
     /**
      * @brief flexible, dynamic, native to (non-)native call with runtime implicit type casting
      */
-    virtual val_t dynamic_call(arg_pack_t = {}) const = 0;
+    virtual val_t call_dynamic(arg_pack_t = {}) const = 0;
 
     /**
      * @brief destructor

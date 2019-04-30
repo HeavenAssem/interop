@@ -4,18 +4,11 @@
 
 #pragma once
 
-#include "object_metadata.h"
-#include "type_metadata.h"
-#include "version.h"
-
-#include <vector>
+#include "internals/native_module_data.hpp"
 
 namespace interop {
 // TODO: do not use C++ here
-struct module_metadata_t {
+struct module_metadata_t: internals::native_module_data_t {
     std::string name;
-    version_t version;
-    std::vector<function_metadata_t> functions;
-    std::vector<object_metadata_t> types;
 };
 } // namespace interop

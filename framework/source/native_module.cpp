@@ -13,50 +13,81 @@
 #include <exceptions.h>
 #include <logger.hpp>
 
+#include <boost/scope_exit.hpp>
+
 #include <algorithm>
 
 using namespace std;
 
 namespace interop {
 namespace {
-version_t get_version(const shared_library & library)
+version_t get_version(const shared_library_t & library)
 {
-    return *reinterpret_cast<version_t *>(library.symbol(interop_framework_abi_version_c));
+    return library.symbol_as<version_t>(interop_framework_abi_version_c);
 }
 
-module_metadata_t get_metadata(const shared_library & library)
+module_metadata_t register_module_and_get_metadata(const shared_library_t & library)
 {
+    auto register_module = library.symbol_as<register_module_function>(interop_module_register_c);
+    register_module();
+
     return convert_metadata_to_current(get_version(library),
                                        library.symbol(interop_module_metadata_c));
 }
 } // namespace
 
-native_module_t::native_module_t(shared_library && _library,
+native_module_t::native_module_t(module_metadata_t metadata, shared_library_t library_p)
+  : internal_module_t(metadata.name, std::move(metadata))
+  , library(std::move(library_p))
+  , interop_abi_version(get_version(library))
+{}
+
+native_module_t::native_module_t(shared_library_t library_p,
                                  const native_module_configuration_t & configuration)
-  : interop_abi_version(get_version(_library))
-  , library(move(_library))
-//, node(node)
+try: native_module_t(register_module_and_get_metadata(library_p), std::move(library_p)) {
+    if (!configuration.name.empty()) {
+        // override name with configured one regardless
+        name = configuration.name;
+    } else if (name.empty()) {
+        // if no name - fallback to library name
+        name = library.name();
+    }
+
+    validate_metadata();
+} catch (const error_t & error) {
+    throw module_loading_error_t("unable to load module from native library '" + library_p.name() +
+                                 "': " + error.what());
+}
+
+native_module_t::classes_sequence_t native_module_t::iterate_classes() const
 {
-    try {
-        /** registration stage begin **/
-        auto register_module =
-            reinterpret_cast<register_module_function>(library.symbol(interop_module_register_c));
-        register_module();
+    return [this, class_id = class_id_t{get_id(), {}}]() mutable -> classes_sequence_t::value_t {
+        BOOST_SCOPE_EXIT(&class_id) { ++class_id.local_id; }
+        BOOST_SCOPE_EXIT_END
 
-        metadata = interop::get_metadata(library);
-
-        if (!configuration.name.empty()) {
-            metadata.name = configuration.name;
-        } else if (metadata.name.empty()) {
-            metadata.name = library.name();
+        if (class_id.local_id == native->types.size()) {
+            return {};
         }
 
-        validate_metadata();
-        /** registration stage end **/
-    } catch (const error_t & error) {
-        throw module_loading_error_t("unable to load module from native library '" +
-                                     library.name() + "': " + error.what());
-    }
+        return {{class_id, native->types[class_id.local_id]}};
+    };
+}
+
+native_module_t::functions_sequence_t native_module_t::iterate_functions() const
+{
+    return native->functions;
+}
+
+const object_metadata_t & native_module_t::get_object_metadata(class_id_t class_id) const
+{
+    using namespace std::string_literals;
+
+    interop_invariant_m(class_id.module_id == get_id(),
+                        "accessing metadata of class from another module");
+    interop_invariant_m(class_id.local_id < native->types.size(),
+                        "invalid class id: " << class_id.local_id << ": out of range");
+
+    return native->types[class_id.local_id];
 }
 
 void native_module_t::link(node_t & node)
@@ -81,7 +112,7 @@ object_ptr_t native_module_t::create_dynamic(const std::string_view & name, arg_
     for (const auto & constructor_metadata : metadata.constructors) {
         try {
             return object_view_t::create(
-                native_function_t::dynamic_call(constructor_metadata.invoke,
+                native_function_t::call_dynamic(constructor_metadata.invoke,
                                                 constructor_metadata.pointer, args,
                                                 constructor_metadata.arguments)
                     .as<void *>(),
@@ -96,7 +127,7 @@ object_ptr_t native_module_t::create_dynamic(const std::string_view & name, arg_
 }
 
 native_module_t::native_module_t(native_module_t && other) noexcept
-  : base_module_t(move(other))
+  : internal_module_t(move(other))
   , library(move(other.library))
 {}
 
@@ -120,18 +151,16 @@ void native_module_t::unload()
     library.unload();
 }
 
-const std::string & native_module_t::name() const { return metadata.name; }
-
 void native_module_t::validate_metadata() const
 {
-    if (metadata.name.empty()) {
+    if (get_name().empty()) {
         throw module_validation_error_t("module name is empty");
     }
 
     std::ostringstream ss;
     size_t objects_with_no_name = 0;
 
-    for (const auto & object_metadata : metadata.types) {
+    for (const auto & object_metadata : native->types) {
         if (object_metadata.name.empty()) {
             ++objects_with_no_name;
         } else if (object_metadata.constructors.empty()) {
@@ -160,11 +189,11 @@ void native_module_t::listen(const std::string_view & module_name, std::function
 function_ptr_t native_module_t::fetch_function(const std::string_view & name)
 {
     auto it =
-        find_if(metadata.functions.begin(), metadata.functions.end(),
+        find_if(native->functions.begin(), native->functions.end(),
                 [&](const function_metadata_t & fn_metadata) { return name == fn_metadata.name; });
-    if (it == metadata.functions.end()) {
+    if (it == native->functions.end()) {
         throw function_lookup_error_t("function with name \""s + name.data() +
-                                      "\" not found in module " + metadata.name);
+                                      "\" not found in module " + get_name());
     }
 
     return make_shared<native_function_t>(*it);

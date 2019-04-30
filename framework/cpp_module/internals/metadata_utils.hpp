@@ -11,20 +11,20 @@ namespace interop {
 namespace internals {
 
 template <typename Metadata, typename Handler>
-auto & find_metadata(Metadata & metadata, std::string_view name, Handler not_found)
+auto & find_metadata(Metadata & metadata, std::string_view name, Handler && not_found)
 {
     auto it = std::find_if(metadata.begin(), metadata.end(),
                            [&](auto & inner_metadata) { return name == inner_metadata.name; });
     if (it == metadata.end()) {
         not_found();
-        interop_invariant_m(false, "bad state");
+        interop_invariant_m(false, "not_found handler didn't throw");
     }
 
     return *it;
 }
 
 template <typename... Args, typename Metadata, typename Handler>
-auto & find_first_with_args(Metadata & metadata, Handler not_found)
+auto & find_first_with_args(Metadata & metadata, Handler && not_found)
 {
     auto it = std::find_if(metadata.begin(), metadata.end(), [](auto & inner_metadata) {
         try {
@@ -37,7 +37,7 @@ auto & find_first_with_args(Metadata & metadata, Handler not_found)
 
     if (it == metadata.end()) {
         not_found();
-        interop_invariant_m(false, "bad state");
+        interop_invariant_m(false, "not_found handler didn't throw");
     }
 
     return *it;

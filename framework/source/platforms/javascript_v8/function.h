@@ -20,7 +20,7 @@ class platform_v8_function_t final: public platform_function_t {
     platform_v8_function_t(std::string name, v8::Local<v8::Function>, const platform_v8_module_t &);
     platform_v8_function_t(std::string name, v8::Local<v8::Function>, const platform_v8_object_t &);
 
-    val_t dynamic_call(arg_pack_t args) const override;
+    val_t call_dynamic(arg_pack_t args) const override;
     v8::Local<v8::Object> constructor_call(arg_pack_t args) const;
 
     static void expose_function_view(v8::Isolate *, v8::Local<v8::Object>, v8::Local<v8::Context>,

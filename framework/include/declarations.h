@@ -3,8 +3,10 @@
 #include "../cpp_module/declarations.h"
 
 namespace interop {
+class node_t;
 class module_view_t;
-class base_module_t;
+class internal_module_t;
+class native_module_t;
 
 class platform_t;
 class platform_factory_t;
@@ -12,14 +14,17 @@ class platform_function_t;
 
 struct platform_configuration_t;
 
-using module_ptr_t            = std::unique_ptr<base_module_t>;
+using module_ptr_t            = std::unique_ptr<internal_module_t>;
 using platform_ptr_t          = std::unique_ptr<platform_t>;
 using platform_factory_ptr    = std::shared_ptr<platform_factory_t>;
 using platform_function_ptr_t = std::shared_ptr<platform_function_t>;
 
 using module_id_t = uint16_t;
+
+const module_id_t unassigned_id_c = -1;
+
 struct class_id_t {
-    module_id_t module_id;
+    module_id_t module_id = unassigned_id_c;
     uint16_t local_id;
 };
 
@@ -43,5 +48,4 @@ struct class_id_hash_t {
     }
 };
 
-const module_id_t unassigned_id_c = -1;
 } // namespace interop

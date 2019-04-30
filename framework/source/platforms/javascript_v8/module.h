@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "base_module.h"
+#include "internal_module.hpp"
 #include "manager.hpp"
 
 #include <v8.h>
@@ -12,8 +12,8 @@
 namespace interop {
 struct platform_module_configuration_t;
 
-class platform_v8_module_t: public base_module_t {
-    using base = base_module_t;
+class platform_v8_module_t: public internal_module_t {
+    using base = internal_module_t;
 
     v8::Isolate * isolate = nullptr;
     v8::UniquePersistent<v8::Context> context;
@@ -28,7 +28,6 @@ class platform_v8_module_t: public base_module_t {
     object_ptr_t create_dynamic(const std::string_view & name, arg_pack_t) override;
     void listen(const std::string_view & module_name, std::function<void()> && handler) override;
     function_ptr_t fetch_function(const std::string_view & name) override;
-    const std::string & name() const override;
     void unload() override;
 
     v8::Isolate * get_isolate() const { return isolate; }

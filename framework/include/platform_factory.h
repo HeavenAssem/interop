@@ -18,7 +18,7 @@ class platform_factory_t {
 
 template <class Platform>
 class wrapped_platform final: public platform_factory_t {
-    static_assert(is_derived_from<platform_t, Platform>::value,
+    static_assert(is_derived_from<platform_t, Platform>,
                   "platform must be derived from interop::platform");
 
   public:

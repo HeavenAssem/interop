@@ -34,15 +34,15 @@ native_function_t::native_function_t(const constructor_metadata_t & metadata,
   , dynamic_invoke{metadata.invoke}
 {}
 
-val_t native_function_t::dynamic_call(arg_pack_t args) const
+val_t native_function_t::call_dynamic(arg_pack_t args) const
 {
     interop_invariant_m(native, "no native data inside native_function_t");
 
-    return dynamic_call(dynamic_invoke, one_of(native->context, native->pointer), std::move(args),
+    return call_dynamic(dynamic_invoke, one_of(native->context, native->pointer), std::move(args),
                         native->arguments);
 }
 
-val_t native_function_t::dynamic_call(universal_wrapper_t invoke, void * context, arg_pack_t args,
+val_t native_function_t::call_dynamic(universal_wrapper_t invoke, void * context, arg_pack_t args,
                                       const std::vector<type_metadata_t> & args_meta)
 {
     for (size_t i = 0; i < args.size(); ++i) {

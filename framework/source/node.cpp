@@ -41,9 +41,9 @@ node_t::node_t(const node_configuration_t & configuration)
     for (const auto & [id, platform_configuration] : configuration.platform_configurations) {
         auto platform = instantiate_platform(id);
         for (auto & module_ptr : platform->initialize(platform_configuration)) {
-            module_ptr->assign_id(modules.size());
+            module_ptr->assign_id(get_new_module_id());
 
-            modules_by_name[module_ptr->name()] = module_ptr.get();
+            modules_by_name[module_ptr->get_name()] = module_ptr.get();
             modules.push_back(std::move(module_ptr));
         }
 
@@ -132,13 +132,13 @@ void node_t::link()
 
 node_t::modules_sequence_t node_t::iterate_modules()
 {
-    return [this, module_id = module_id_t{}]() mutable -> modules_sequence_t::value_t {
-        BOOST_SCOPE_EXIT(&module_id) { ++module_id; }
+    return [this, it = modules.begin()]() mutable -> modules_sequence_t::value_t {
+        BOOST_SCOPE_EXIT(&it) { ++it; }
         BOOST_SCOPE_EXIT_END
 
-        for (; module_id < modules.size(); ++module_id) {
-            if (const auto & module_ptr = modules[module_id]) {
-                return {{module_id, *module_ptr}};
+        for (; it != modules.end(); ++it) {
+            if (const auto & module_ptr = *it) {
+                return {*module_ptr};
             }
         }
 
@@ -146,7 +146,7 @@ node_t::modules_sequence_t node_t::iterate_modules()
     };
 }
 
-base_module_t & node_t::get(module_id_t id)
+internal_module_t & node_t::get_module(module_id_t id)
 {
     interop_invariant_m(id < modules.size(), "invalid module id" << id);
     return *modules[id];
@@ -154,14 +154,14 @@ base_module_t & node_t::get(module_id_t id)
 
 void node_t::load_native_module(const native_module_configuration_t & configuration)
 {
-    auto library_instance = shared_library(configuration.path.c_str());
+    auto library_instance = shared_library_t(configuration.path.c_str());
     auto module_ptr = make_unique<native_module_t>(std::move(library_instance), configuration);
 
-    module_ptr->assign_id(modules.size());
+    module_ptr->assign_id(get_new_module_id());
 
-    interop_logger(log, "registered native module '" + module_ptr->name() + "'");
+    interop_logger(log, "registered native module '" + module_ptr->get_name() + "'");
 
-    modules_by_name[module_ptr->name()] = module_ptr.get();
-    modules.push_back(std::move(module_ptr));
+    modules_by_name[module_ptr->get_name()] = module_ptr.get();
+    modules.push_back(move(module_ptr));
 }
 } // namespace interop

@@ -1,5 +1,5 @@
 #include "manager.hpp"
-#include "base_module.h"
+#include "native_module.h"
 #include "node.hpp"
 
 using namespace std;
@@ -16,9 +16,9 @@ object_manager_t::object_manager_t(class_id_t class_id)
   : class_id{class_id}
 {}
 
-base_module_t & object_manager_t::get_module() const
+native_module_t & object_manager_t::get_module() const
 {
-    return node_t::get().get(class_id.module_id);
+    return node_t::get().get<native_module_t>(class_id.module_id);
 }
 
 const std::string & object_manager_t::get_class_name() const

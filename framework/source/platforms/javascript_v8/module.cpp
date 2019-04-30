@@ -9,6 +9,7 @@
 
 #include <configuration.h>
 #include <logger.hpp>
+#include <native_module.h>
 #include <node.hpp>
 #include <os.h>
 #include <utils/string.h>
@@ -22,6 +23,7 @@ using namespace std;
 using namespace v8;
 
 namespace interop {
+namespace {
 
 void constructor_callback(const FunctionCallbackInfo<Value> & args)
 {
@@ -54,16 +56,16 @@ void method_callback(const FunctionCallbackInfo<Value> & args)
     auto isolate = args.GetIsolate();
 
     args.GetReturnValue().Set(helpers::to_v8(
-        isolate, object.function(method_metadata.name)->dynamic_call(helpers::from_v8(args))));
+        isolate, object.function(method_metadata.name)->call_dynamic(helpers::from_v8(args))));
 }
+
+} // namespace
 
 platform_v8_module_t::platform_v8_module_t(Isolate * isolate,
                                            const platform_module_configuration_t & configuration)
-  : base_module_t()
+  : internal_module_t(configuration.name)
   , isolate(isolate)
 {
-    metadata.name = configuration.name;
-
     // Enter the isolate
     v8::Isolate::Scope isolate_scope(isolate);
     // Create a stack-allocated handle scope.
@@ -132,15 +134,9 @@ void platform_v8_module_t::link(node_t & node)
     auto global = local_context->Global();
 
     // Expose all modules
-    for (auto & [module_id, module] : node.iterate_modules()) {
-        if (&module == this) {
-            continue;
-        }
-
-        const auto & metadata = module.get_metadata();
-
+    for (auto & module : node.iterate<native_module_t>()) {
         auto current_object = global;
-        auto path           = utils::split_rx(metadata.name, "\\.");
+        auto path           = utils::split_rx(module.get_name(), "\\.");
 
         for (const auto & name : path) {
             auto key      = helpers::to_v8_str(isolate, name);
@@ -157,7 +153,7 @@ void platform_v8_module_t::link(node_t & node)
             }
         }
 
-        for (const auto & function_metadata : metadata.functions) {
+        for (const auto & function_metadata : module.iterate_functions()) {
             platform_v8_function_t::expose_function_view(isolate, current_object, local_context,
                                                          module.function(function_metadata.name));
         }
@@ -170,7 +166,7 @@ void platform_v8_module_t::link(node_t & node)
                 External::New(isolate, &class_manager.get_manager_for_class(class_id)));
 
             tpl->SetClassName(helpers::to_v8_str(isolate, name));
-            tpl->InstanceTemplate()->SetInternalFieldCount(2); // object itself, storage
+            tpl->InstanceTemplate()->SetInternalFieldCount(2); // object itself, manager
 
             auto prototype = tpl->PrototypeTemplate();
 
@@ -236,14 +232,12 @@ function_ptr_t platform_v8_module_t::fetch_function(const std::string_view & nam
 
     if (!value->IsFunction()) {
         throw function_lookup_error_t("function '"s + name.data() + "' was not found in module '" +
-                                      this->name() +
+                                      get_name() +
                                       "'; found instead: " + helpers::to_string(isolate, value));
     }
 
     return make_shared<platform_v8_function_t>(name.data(), value.As<Function>(), *this);
 }
-
-const string & platform_v8_module_t::name() const { return metadata.name; }
 
 void platform_v8_module_t::unload()
 {

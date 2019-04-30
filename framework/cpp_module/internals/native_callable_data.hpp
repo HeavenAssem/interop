@@ -1,11 +1,10 @@
 #pragma once
 
-#include <function_metadata.h>
+#include <type_metadata.h>
 
 #include <optional>
 
-namespace interop {
-namespace internals {
+namespace interop::internals {
 /**
  * @brief data necessary to perform zero overhead strict call (native to native)
  *
@@ -20,5 +19,4 @@ struct native_callable_data_t {
 };
 
 using native_callable_data_opt_t = std::optional<native_callable_data_t>;
-} // namespace internals
-} // namespace interop
+} // namespace interop::internals

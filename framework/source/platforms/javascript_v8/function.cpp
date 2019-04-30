@@ -38,7 +38,7 @@ void exposed_function_callback(const FunctionCallbackInfo<Value> & info)
         args.push_back(from_v8(isolate, info[i]));
     }
 
-    const auto & ret_val = fn->dynamic_call(std::move(args));
+    const auto & ret_val = fn->call_dynamic(std::move(args));
     if (!ret_val.empty()) {
         info.GetReturnValue().Set(to_v8(isolate, ret_val));
     }
@@ -61,7 +61,7 @@ platform_v8_function_t::platform_v8_function_t(std::string name, Local<Function>
     this->object = &object;
 }
 
-val_t platform_v8_function_t::dynamic_call(arg_pack_t args) const
+val_t platform_v8_function_t::call_dynamic(arg_pack_t args) const
 {
     auto isolate = module.get_isolate();
 

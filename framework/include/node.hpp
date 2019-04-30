@@ -25,9 +25,20 @@ class node_t: public module_context_t {
     std::unordered_map<std::string, module_ptr_t::pointer> modules_by_name;
     std::unordered_map<std::string, platform_ptr_t::pointer> platforms_by_name;
 
+    mutable module_id_t next_module_id = {};
+
     node_t(const node_configuration_t &);
     node_t(const node_t &) = delete;
     node_t(node_t &&)      = delete;
+
+    template <typename ModuleType>
+    static lazy_sequence_value_t<ModuleType &> only_castable_to(internal_module_t & module)
+    {
+        if (auto casted_module_ptr = dynamic_cast<ModuleType *>(&module)) {
+            return *casted_module_ptr;
+        }
+        return std::nullopt;
+    }
 
   public:
     /** public interface **/
@@ -52,6 +63,9 @@ class node_t: public module_context_t {
      */
     static node_t & get();
 
+    // not thread_safe
+    module_id_t get_new_module_id() const { return next_module_id++; }
+
     /**
      * @brief get module by name
      *
@@ -62,11 +76,30 @@ class node_t: public module_context_t {
     /** public interface end **/
 
     /** internal interface **/
-    using modules_sequence_t = lazy_sequence_t<std::pair<module_id_t, base_module_t &>>;
+    using modules_sequence_t = lazy_sequence_t<internal_module_t &>;
 
     void link();
+
     modules_sequence_t iterate_modules();
-    base_module_t & get(module_id_t);
+    template <typename ModuleType>
+    auto iterate()
+    {
+        static_assert(std::is_base_of_v<module_view_t, ModuleType>, "wrong type to iterate");
+        return iterate_modules().transformed(only_castable_to<ModuleType>);
+    }
+
+    internal_module_t & get_module(module_id_t);
+    template <typename ModuleType>
+    ModuleType & get(module_id_t module_id)
+    {
+        auto & module = get_module(module_id);
+        if (auto casted_module_ptr = dynamic_cast<ModuleType *>(&module)) {
+            return *casted_module_ptr;
+        }
+
+        throw error_t("no module with requested type and id");
+    }
+
     void unload(bool forced = false);
     /** internal interface **/
 
