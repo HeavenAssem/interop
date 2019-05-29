@@ -16,7 +16,7 @@ class platform_v8_module_t: public internal_module_t {
     using base = internal_module_t;
 
     v8::Isolate * isolate = nullptr;
-    v8::UniquePersistent<v8::Context> context;
+    v8::UniquePersistent<v8::Context> persistent_context;
     class_manager_t class_manager;
 
   public:
@@ -31,11 +31,14 @@ class platform_v8_module_t: public internal_module_t {
     void unload() override;
 
     v8::Isolate * get_isolate() const { return isolate; }
-    v8::Local<v8::Context> get_context() const { return context.Get(isolate); }
+    v8::Local<v8::Context> get_context() const { return persistent_context.Get(isolate); }
 
     void initiate_garbage_collection_for_testing() const;
 
   private:
     void initialize() const;
+    void expose_module(v8::Local<v8::Object> parent, v8::Local<v8::String> key, native_module_t &);
+    void expose_module(v8::Local<v8::Object> parent, v8::Local<v8::String> key,
+                       internal_module_t &);
 };
 } // namespace interop

@@ -24,10 +24,9 @@ shared_library_t::shared_library_t(const std::string_view & path, const std::str
 }
 
 shared_library_t::shared_library_t(shared_library_t && other) noexcept
+  : handle(other.handle)
+  , library_name(std::move(other.library_name))
 {
-    this->handle       = other.handle;
-    this->library_name = other.library_name;
-
     other.reset();
 }
 

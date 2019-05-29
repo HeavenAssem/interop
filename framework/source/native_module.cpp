@@ -36,15 +36,15 @@ module_metadata_t register_module_and_get_metadata(const shared_library_t & libr
 }
 } // namespace
 
-native_module_t::native_module_t(module_metadata_t metadata, shared_library_t library_p)
-  : internal_module_t(metadata.name, std::move(metadata))
+native_module_t::native_module_t(shared_library_t library_p)
+  : internal_module_t(register_module_and_get_metadata(library_p))
   , library(std::move(library_p))
   , interop_abi_version(get_version(library))
 {}
 
 native_module_t::native_module_t(shared_library_t library_p,
                                  const native_module_configuration_t & configuration)
-try: native_module_t(register_module_and_get_metadata(library_p), std::move(library_p)) {
+try: native_module_t(std::move(library_p)) {
     if (!configuration.name.empty()) {
         // override name with configured one regardless
         name = configuration.name;

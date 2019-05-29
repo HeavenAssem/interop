@@ -34,9 +34,14 @@ class module_view_t {
     }
 
   public:
-    module_view_t(std::string name, internals::native_module_data_opt_t native = std::nullopt)
+    explicit module_view_t(std::string name,
+                           internals::native_module_data_opt_t native = std::nullopt)
       : name(std::move(name))
       , native(std::move(native))
+    {}
+
+    explicit module_view_t(module_metadata_t native_metadata)
+      : module_view_t(std::move(native_metadata.name), std::move(native_metadata))
     {}
 
     const std::string & get_name() const { return name; }

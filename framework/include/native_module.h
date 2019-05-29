@@ -20,7 +20,7 @@ class native_module_t: public internal_module_t {
     shared_library_t library;
     version_t interop_abi_version;
 
-    native_module_t(module_metadata_t, shared_library_t);
+    explicit native_module_t(shared_library_t);
 
   public:
     using classes_sequence_t   = lazy_sequence_t<std::pair<class_id_t, const object_metadata_t &>>;

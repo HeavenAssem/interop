@@ -55,7 +55,7 @@ class lazy_sequence_t {
   public:
     using value_t     = lazy_sequence_value_t<T>;
     using generator_t = std::function<value_t()>;
-    using predicate_t = std::function<bool(const value_t &)>;
+    using predicate_t = std::function<bool(const T &)>;
 
   private:
     generator_t generator;
@@ -65,9 +65,10 @@ class lazy_sequence_t {
     value_t next()
     {
         while (value_t generated = generator()) {
-            if (std::all_of(
-                    filters.begin(), filters.end(),
-                    [&generated](const predicate_t & satisfies) { return satisfies(generated); })) {
+            if (std::all_of(filters.begin(), filters.end(),
+                            [&generated](const predicate_t & satisfies) {
+                                return satisfies(static_cast<const T &>(*generated));
+                            })) {
                 return generated;
             }
         }
@@ -118,10 +119,10 @@ class lazy_sequence_t {
     lazy_sequence_t(lazy_sequence_t &&)      = default;
 
     template <typename Predicate>
-    lazy_sequence_t & filter(Predicate && predicate)
+    lazy_sequence_t filter(Predicate && predicate)
     {
         filters.push_back(predicate);
-        return *this;
+        return std::move(*this);
     }
 
     template <typename Thunk>

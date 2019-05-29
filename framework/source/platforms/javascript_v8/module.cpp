@@ -76,7 +76,7 @@ platform_v8_module_t::platform_v8_module_t(Isolate * isolate,
     // Create a new context.
     auto local_context = Context::New(isolate, nullptr, global_template);
     // Store context
-    context = UniquePersistent<Context>(isolate, local_context);
+    persistent_context = UniquePersistent<Context>(isolate, local_context);
     // Enter the context for compiling and running scripts.
     Context::Scope context_scope(local_context);
 
@@ -127,20 +127,29 @@ void platform_v8_module_t::link(node_t & node)
     // Create a stack-allocated handle scope.
     HandleScope handle_scope(isolate);
 
-    auto local_context = context.Get(isolate);
+    auto context = get_context();
     // Enter the context
-    Context::Scope context_scope(local_context);
+    Context::Scope context_scope(context);
 
-    auto global = local_context->Global();
+    auto global = context->Global();
 
     // Expose all modules
-    for (auto & module : node.iterate<native_module_t>()) {
+    for (auto & module : node.iterate_modules()) {
+        if (&module == this) {
+            continue;
+        }
+
         auto current_object = global;
         auto path           = utils::split_rx(module.get_name(), "\\.");
 
+        interop_invariant_m(!path.empty(), "empty module name");
+
+        auto name = move(path.back());
+        path.resize(path.size() - 1);
+
         for (const auto & name : path) {
             auto key      = helpers::to_v8_str(isolate, name);
-            auto existing = current_object->Get(local_context, key).ToLocalChecked();
+            auto existing = current_object->Get(context, key).ToLocalChecked();
             if (existing->IsUndefined()) {
                 auto new_object = Object::New(isolate);
                 current_object->Set(key, new_object);
@@ -153,34 +162,16 @@ void platform_v8_module_t::link(node_t & node)
             }
         }
 
-        for (const auto & function_metadata : module.iterate_functions()) {
-            platform_v8_function_t::expose_function_view(isolate, current_object, local_context,
-                                                         module.function(function_metadata.name));
+        auto key = helpers::to_v8_str(isolate, name);
+
+        if (current_object->Has(key)) {
+            throw error_t("name collision during V8 module link: " + name + " already exists");
         }
 
-        for (const auto & [class_id, class_metadata] : module.iterate_classes()) {
-            const auto & name = class_metadata.name;
-
-            auto tpl = FunctionTemplate::New(
-                isolate, helpers::forward_exceptions<constructor_callback>,
-                External::New(isolate, &class_manager.get_manager_for_class(class_id)));
-
-            tpl->SetClassName(helpers::to_v8_str(isolate, name));
-            tpl->InstanceTemplate()->SetInternalFieldCount(2); // object itself, manager
-
-            auto prototype = tpl->PrototypeTemplate();
-
-            for (const auto & method_metadata : class_metadata.methods) {
-                // Add object properties to the prototype
-                // Methods, Properties, etc.
-                prototype->Set(
-                    helpers::to_v8_str(isolate, method_metadata.name),
-                    FunctionTemplate::New(isolate, helpers::forward_exceptions<method_callback>,
-                                          External::New(isolate, const_cast<function_metadata_t *>(
-                                                                     &method_metadata))));
-            }
-
-            current_object->Set(helpers::to_v8_str(isolate, name), tpl->GetFunction());
+        if (auto native_module_ptr = dynamic_cast<native_module_t *>(&module)) {
+            expose_module(current_object, key, *native_module_ptr);
+        } else {
+            expose_module(current_object, key, module);
         }
     }
 
@@ -194,9 +185,9 @@ object_ptr_t platform_v8_module_t::create_dynamic(const std::string_view & name,
     // Create a stack-allocated handle scope.
     HandleScope handle_scope(isolate);
 
-    auto local_context = context.Get(isolate);
+    auto context = get_context();
     // Enter the context
-    Context::Scope context_scope(local_context);
+    Context::Scope context_scope(context);
 
     auto constructor = dynamic_pointer_cast<platform_v8_function_t>(function(name));
 
@@ -219,16 +210,12 @@ function_ptr_t platform_v8_module_t::fetch_function(const std::string_view & nam
     // Create a stack-allocated handle scope.
     HandleScope handle_scope(isolate);
 
-    auto local_context = context.Get(isolate);
+    auto context = get_context();
     // Enter the context
-    Context::Scope context_scope(local_context);
+    Context::Scope context_scope(context);
 
-    auto global = local_context->Global();
+    auto global = context->Global();
     auto value  = global->Get(helpers::to_v8_str(isolate, name));
-
-    bool has = global->HasOwnProperty(local_context, helpers::to_v8_str(isolate, name)).ToChecked();
-
-    interop_logger(debug, has ? "has" : "misses");
 
     if (!value->IsFunction()) {
         throw function_lookup_error_t("function '"s + name.data() + "' was not found in module '" +
@@ -244,7 +231,7 @@ void platform_v8_module_t::unload()
     base::unload();
 
     // Dispose context
-    context.Reset();
+    persistent_context.Reset();
 
     // Dispose the isolate
     if (isolate) {
@@ -263,5 +250,55 @@ void platform_v8_module_t::initiate_garbage_collection_for_testing() const
 }
 
 void platform_v8_module_t::initialize() const {}
+
+void platform_v8_module_t::expose_module(v8::Local<v8::Object> parent, v8::Local<v8::String> key,
+                                         native_module_t & module)
+{
+    auto context = get_context();
+
+    auto root = v8::Object::New(isolate);
+
+    for (const auto & function_metadata : module.iterate_functions()) {
+        platform_v8_function_t::expose_function_view(isolate, root, context,
+                                                     module.function(function_metadata.name));
+    }
+
+    for (const auto & [class_id, class_metadata] : module.iterate_classes()) {
+        const auto & name = class_metadata.name;
+
+        auto tpl = FunctionTemplate::New(
+            isolate, helpers::forward_exceptions<constructor_callback>,
+            External::New(isolate, &class_manager.get_manager_for_class(class_id)));
+
+        tpl->SetClassName(helpers::to_v8_str(isolate, name));
+        tpl->InstanceTemplate()->SetInternalFieldCount(2); // object itself, manager
+
+        auto prototype = tpl->PrototypeTemplate();
+
+        for (const auto & method_metadata : class_metadata.methods) {
+            // Add object properties to the prototype
+            // Methods, Properties, etc.
+            prototype->Set(
+                helpers::to_v8_str(isolate, method_metadata.name),
+                FunctionTemplate::New(
+                    isolate, helpers::forward_exceptions<method_callback>,
+                    External::New(isolate, const_cast<function_metadata_t *>(&method_metadata))));
+        }
+
+        root->Set(helpers::to_v8_str(isolate, name), tpl->GetFunction());
+    }
+
+    parent->Set(key, root);
+}
+
+void platform_v8_module_t::expose_module(v8::Local<v8::Object> parent, v8::Local<v8::String> key,
+                                         internal_module_t & module)
+{
+    ignore = parent;
+    ignore = key;
+    ignore = module;
+
+    throw not_implemented("V8 JS to non-native module interoperability is not implemented");
+}
 
 } // namespace interop
