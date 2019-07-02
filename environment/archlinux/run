@@ -19,4 +19,4 @@ OPTIONS="
 --net=host
 "
 
-docker run $OPTIONS islamboziev/interop_devenv_archlinux_gui:latest code .
+docker run $OPTIONS islamboziev/interop_devenv_archlinux_gui:latest bash

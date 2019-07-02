@@ -24,6 +24,7 @@ void exposed_function_callback(const FunctionCallbackInfo<Value> & info)
     //    and if needed will refetch it.
     // 2) same as 1 but refetching will be done by framework
     // 3) make function views persistent and update them instead of recreation
+    // 4) use embedder field as universal entry point
     // Analysis:
     // 1 - some overhead with unpredictable execution time in case of refetch: forget about RT case
     //     function fetch must be thread-safe
@@ -35,12 +36,12 @@ void exposed_function_callback(const FunctionCallbackInfo<Value> & info)
     args.reserve(info.Length());
 
     for (int i = 0; i < info.Length(); ++i) {
-        args.push_back(from_v8(isolate, info[i]));
+        args.push_back(from_v8(info[i]));
     }
 
     const auto & ret_val = fn->call_dynamic(std::move(args));
     if (!ret_val.empty()) {
-        info.GetReturnValue().Set(to_v8(isolate, ret_val));
+        info.GetReturnValue().Set(to_v8(ret_val));
     }
 }
 
@@ -77,8 +78,7 @@ val_t platform_v8_function_t::call_dynamic(arg_pack_t args) const
 
     Local<Value> recv = object ? object->get_handle() : local_context->Global();
 
-    return call_v8(local_context, recv, handle.Get(isolate),
-                   helpers::to_v8(isolate, std::move(args)));
+    return call_v8(recv, handle.Get(isolate), helpers::to_v8(std::move(args)));
 }
 
 Local<Object> platform_v8_function_t::constructor_call(arg_pack_t args) const
@@ -95,18 +95,16 @@ Local<Object> platform_v8_function_t::constructor_call(arg_pack_t args) const
     // Enter the context
     Context::Scope context_scope(local_context);
 
-    return handle_scope.Escape(call_v8_as_constructor(local_context, handle.Get(isolate),
-                                                      helpers::to_v8(isolate, std::move(args))));
+    return handle_scope.Escape(
+        call_v8_as_constructor(handle.Get(isolate), helpers::to_v8(std::move(args))));
 }
 
-void platform_v8_function_t::expose_function_view(Isolate * isolate, Local<Object> object,
-                                                  Local<Context> context,
-                                                  const function_ptr_t & function)
+v8::Local<v8::Object> platform_v8_function_t::to_v8(const function_ptr_t & function)
 {
-    // FIXME: return value is probably useful
-    std::ignore = object->Set(
-        context, to_v8(isolate, function->name),
-        Function::New(isolate, exposed_function_callback, External::New(isolate, function.get())));
+    auto isolate = helpers::current_isolate();
+
+    return Function::New(isolate, exposed_function_callback,
+                         External::New(isolate, function.get()));
 }
 
 } // namespace interop

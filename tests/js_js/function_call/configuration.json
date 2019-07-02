@@ -1,0 +1,28 @@
+{
+    "name": "js_js.function_call",
+    "platforms": {
+        "js": {
+            "execution_path": "/usr/lib/v8/",
+            "modules": [
+                {
+                    "name": "js.module1",
+                    "paths": [
+                        "modules/js_js.function_call.module1.js"
+                    ]
+                },
+                {
+                    "name": "js.module2",
+                    "paths": [
+                        "modules/js_js.function_call.module2.js"
+                    ]
+                }
+            ]
+        }
+    },
+    "native_modules": [
+        {
+            "name": "cpp.module",
+            "path": "modules/js_js.function_call.module_cpp.so"
+        }
+    ]
+}

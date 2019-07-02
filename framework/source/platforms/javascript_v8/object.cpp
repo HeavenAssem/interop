@@ -30,7 +30,7 @@ function_ptr_t platform_v8_object_t::function(const std::string_view & name) con
 
     auto object = handle.Get(isolate);
 
-    auto property = object->Get(local_context, helpers::to_v8_str(isolate, name)).ToLocalChecked();
+    auto property = object->Get(local_context, helpers::to_v8_str(name)).ToLocalChecked();
 
     if (!property->IsFunction()) {
         throw error_t(object_name + "." + name.data() + " is not a function");

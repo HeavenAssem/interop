@@ -1,5 +1,5 @@
 {
-    "name": "cross_module.function_call",
+    "name": "js_cpp.function_call",
     "platforms": {
         "js": {
             "execution_path": "/usr/lib/v8/",
@@ -7,7 +7,7 @@
                 {
                     "name": "js.module",
                     "paths": [
-                        "modules/cross_language.javascript.function_call.module.js"
+                        "modules/js_cpp.function_call.module.js"
                     ]
                 }
             ]
@@ -16,7 +16,7 @@
     "native_modules": [
         {
             "name": "cpp.module",
-            "path": "modules/cross_language.javascript.function_call.module_cpp.so"
+            "path": "modules/js_cpp.function_call.module_cpp.so"
         }
     ]
 }

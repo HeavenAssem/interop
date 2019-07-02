@@ -10,5 +10,6 @@ target_link_libraries(tests.node interop_framework gtest)
 
 set(TESTS_NODE ${CMAKE_CURRENT_BINARY_DIR}/tests.node)
 
-add_subdirectory(cross_module)
-add_subdirectory(cross_language)
+add_subdirectory(cpp_cpp)
+add_subdirectory(js_cpp)
+add_subdirectory(js_js)

@@ -1,5 +1,5 @@
 {
-    "name": "cross_language.javascript.objects",
+    "name": "js_cpp.objects",
     "platforms": {
         "js": {
             "execution_path": "/usr/lib/v8/",
@@ -7,7 +7,7 @@
                 {
                     "name": "js.module",
                     "paths": [
-                        "modules/cross_language.javascript.objects.module.js"
+                        "modules/js_cpp.objects.module.js"
                     ]
                 }
             ]
@@ -16,7 +16,7 @@
     "native_modules": [
         {
             "name": "cpp.module",
-            "path": "modules/cross_language.javascript.objects.module_cpp.so"
+            "path": "modules/js_cpp.objects.module_cpp.so"
         }
     ]
 }

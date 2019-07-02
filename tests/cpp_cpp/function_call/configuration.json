@@ -1,0 +1,13 @@
+{
+    "name": "cpp_cpp.function_call",
+    "native_modules": [
+        {
+            "name": "module1",
+            "path": "modules/cpp_cpp.function_call.module1.so"
+        },
+        {
+            "name": "module2",
+            "path": "modules/cpp_cpp.function_call.module2.so"
+        }
+    ]
+}
