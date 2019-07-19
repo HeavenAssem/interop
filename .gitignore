@@ -10,3 +10,6 @@ build*/
 
 # Valgrind
 vgcore.*
+
+# devenv home volume
+.home

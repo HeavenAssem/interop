@@ -1,22 +1,25 @@
 #!/usr/bin/env bash
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"/../../
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+DIR=${SCRIPT_DIR}/../../
 OPTIONS="
 -it
 --rm
 --user=developer
 -v $DIR:$DIR
--v $HOME/.vscode/:/home/developer/.vscode/:rw
--v $HOME/.config/:/home/developer/.config/:rw
+-v $SCRIPT_DIR/.home/:/home/developer/:rw
 -v /usr/share/fonts/:/usr/share/fonts/:ro
 -w $DIR
 -e DISPLAY=$DISPLAY
 -v /tmp/.X11-unix:/tmp/.X11-unix
--v $HOME/.Xauthority:/home/developer/.Xauthority:rw
 --cap-add=SYS_PTRACE
 --security-opt seccomp=unconfined
 --name interop_devenv_instance
 --net=host
 "
+
+mkdir -p $SCRIPT_DIR/.home
+ln -sf $HOME/.Xauthority $SCRIPT_DIR/.home
+cp -rf $HOME/.ssh $SCRIPT_DIR/.home
 
 docker run $OPTIONS islamboziev/interop_devenv_archlinux_gui:latest bash
