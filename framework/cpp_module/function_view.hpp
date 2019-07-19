@@ -40,8 +40,9 @@ struct function_view_t {
       , native(std::move(native))
     {}
 
-    // function_view_t(const function_view_t &) = delete;
-    // function_view_t(function_view_t &&)      = delete;
+    function_view_t(const function_view_t &) = delete;
+    function_view_t(function_view_t &&)      = delete;
+
     /**
      * @brief Fast, strict, native to native call with NO implicit type casting
      *
