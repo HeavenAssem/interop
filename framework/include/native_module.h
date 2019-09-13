@@ -44,7 +44,8 @@ class native_module_t: public internal_module_t {
     void unload() override;
 
   private:
-    function_ptr_t fetch_function(const std::string_view & name) override;
+    function_ptr_t fetch_function(const std::string_view & name) const override;
+    field_ptr_t fetch_field(const std::string_view & name) const override;
 
     void validate_metadata() const;
 };

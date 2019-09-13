@@ -157,6 +157,8 @@ class member_reflector_t<const T C::*, cpp_member_ptr> {
         return reinterpret_cast<const C *>(object)->*cpp_member_ptr;
     }
 
+    static val_t dynamic_getter(const void * object) { return getter(object); }
+
   public:
     using class_t = C;
 
@@ -165,11 +167,11 @@ class member_reflector_t<const T C::*, cpp_member_ptr> {
     static field_metadata_t reflect(std::string name)
     {
         field_metadata_t res;
-        res.type   = enumerate_type<T>();
-        res.name   = std::move(name);
-        res.size   = sizeof(T);
-        res.getter = static_cast<void *>(getter);
-        res.setter = nullptr;
+        res.type           = enumerate_type<T>();
+        res.name           = std::move(name);
+        res.size           = sizeof(T);
+        res.getter         = reinterpret_cast<void *>(getter);
+        res.dynamic_getter = dynamic_getter;
         return res;
     }
 };
@@ -187,9 +189,16 @@ class member_reflector_t<T C::*, cpp_member_ptr> {
         return reinterpret_cast<const C *>(object)->*cpp_member_ptr;
     }
 
+    static val_t dynamic_getter(const void * object) { return getter(object); }
+
     static void setter(void * object, T && value)
     {
         reinterpret_cast<C *>(object)->*cpp_member_ptr = std::move(value);
+    }
+
+    static void dynamic_setter(void * object, val_t value)
+    {
+        return setter(object, std::move(value.as<T>()));
     }
 
   public:
@@ -200,11 +209,13 @@ class member_reflector_t<T C::*, cpp_member_ptr> {
     static field_metadata_t reflect(std::string name)
     {
         field_metadata_t res;
-        res.type   = enumerate_type<T>();
-        res.name   = std::move(name);
-        res.size   = sizeof(T);
-        res.getter = static_cast<void *>(getter);
-        res.setter = static_cast<void *>(setter);
+        res.type           = enumerate_type<T>();
+        res.name           = std::move(name);
+        res.size           = sizeof(T);
+        res.getter         = reinterpret_cast<void *>(getter);
+        res.dynamic_getter = dynamic_getter;
+        res.setter         = reinterpret_cast<void *>(setter);
+        res.dynamic_setter = dynamic_setter;
         return res;
     }
 };

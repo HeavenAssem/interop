@@ -7,6 +7,7 @@
 #include "definitions.h"
 #include "internals/class_reflection.h"
 #include "module_definitions.h"
+#include "type_subsystem/user_type_registry.hpp"
 
 #include <exceptions.h>
 
@@ -42,6 +43,8 @@ template <class Class, class... Constructors>
 auto register_class(std::string name)
 {
     using internals::class_reflection::class_reflector_t;
+
+    user_type_registry_t::set<Class>();
 
     interop_module_metadata_m.types.emplace_back(std::move(name));
     return class_reflector_t<Class, Constructors...>(interop_module_metadata_m.types.back());

@@ -39,5 +39,6 @@ TEST_F(interop_test, call)
 {
     auto & module = interop::ctx->get(other_module);
 
-    EXPECT_EQ(444, module.function("get_integer_from_module_2")->call<int32_t>());
+    EXPECT_EQ(444,
+              module.get<interop::function_view_t>("get_integer_from_module_2")->call<int32_t>());
 }

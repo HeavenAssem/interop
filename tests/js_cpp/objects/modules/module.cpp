@@ -69,15 +69,15 @@ TEST(objects, cpp_to_js)
 {
     auto & module = interop::ctx->get(js_module_name_c);
 
-    EXPECT_TRUE(module.function("test_objects")->call<bool>());
+    EXPECT_TRUE(module.get<interop::function_view_t>("test_objects")->call<bool>());
 }
 
 TEST(objects, lifetime)
 {
     auto & module =
-        dynamic_cast<interop::platform_v8_module_t &>(interop::ctx->get(js_module_name_c));
+        dynamic_cast<interop::platform_v8::module_t &>(interop::ctx->get(js_module_name_c));
 
-    EXPECT_TRUE(module.function("test_objects")->call<bool>());
+    EXPECT_TRUE(module.get<interop::function_view_t>("test_objects")->call<bool>());
 
     module.initiate_garbage_collection_for_testing();
 
@@ -91,16 +91,16 @@ TEST(objects, js_to_cpp)
     {
         auto js_object = js_module.create_dynamic("TestObject", {1, 2, 3});
 
-        EXPECT_EQ(1, js_object->function("get_a")->call<int>());
-        EXPECT_EQ(2, js_object->function("get_b")->call<int>());
-        EXPECT_EQ(3, js_object->function("get_c")->call<int>());
+        EXPECT_EQ(1, js_object->get<interop::function_view_t>("get_a")->call<int>());
+        EXPECT_EQ(2, js_object->get<interop::function_view_t>("get_b")->call<int>());
+        EXPECT_EQ(3, js_object->get<interop::function_view_t>("get_c")->call<int>());
     }
 
     {
         auto js_object = js_module.create_dynamic("NewTypeClass", {1, "some value"});
 
-        EXPECT_EQ(3, js_object->function("get_a")->call<int>());
+        EXPECT_EQ(3, js_object->get<interop::function_view_t>("get_a")->call<int>());
         EXPECT_EQ("some value was passed from c++",
-                  js_object->function("get_b")->call<std::string>());
+                  js_object->get<interop::function_view_t>("get_b")->call<std::string>());
     }
 }

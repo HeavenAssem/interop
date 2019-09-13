@@ -4,8 +4,10 @@
 
 #include "module.h"
 #include "common.hpp"
+#include "field.hpp"
 #include "function.h"
 #include "object.hpp"
+#include "tracing.hpp"
 
 #include <configuration.h>
 #include <logger.hpp>
@@ -22,7 +24,7 @@
 using namespace std;
 using namespace v8;
 
-namespace interop {
+namespace interop::platform_v8 {
 namespace {
 
 constexpr int exposed_module_field_index_c = 1;
@@ -57,7 +59,28 @@ void method_callback(const FunctionCallbackInfo<Value> & args)
         *static_cast<function_metadata_t *>(args.Data().As<External>()->Value());
 
     args.GetReturnValue().Set(helpers::to_v8(
-        object.function(method_metadata.name)->call_dynamic(helpers::from_v8(args))));
+        object.get<function_view_t>(method_metadata.name)->call_dynamic(helpers::from_v8(args))));
+}
+
+void field_getter_callback(const FunctionCallbackInfo<Value> & args)
+{
+    const auto & object =
+        *static_cast<object_view_t *>(args.This()->GetAlignedPointerFromInternalField(0));
+    const auto & field_metadata =
+        *static_cast<field_metadata_t *>(args.Data().As<External>()->Value());
+
+    args.GetReturnValue().Set(
+        helpers::to_v8(object.get<field_view_t>(field_metadata.name)->get_dynamic()));
+}
+
+void field_setter_callback(const FunctionCallbackInfo<Value> & args)
+{
+    const auto & object =
+        *static_cast<object_view_t *>(args.This()->GetAlignedPointerFromInternalField(0));
+    const auto & field_metadata =
+        *static_cast<field_metadata_t *>(args.Data().As<External>()->Value());
+
+    object.get<field_view_t>(field_metadata.name)->set_dynamic(helpers::from_v8(args[0]));
 }
 
 void module_property_callback(Local<Name> v8_name, const PropertyCallbackInfo<Value> & info)
@@ -66,16 +89,17 @@ void module_property_callback(Local<Name> v8_name, const PropertyCallbackInfo<Va
     auto & module = *static_cast<internal_module_t *>(
         info.Holder()->GetAlignedPointerFromInternalField(exposed_module_field_index_c));
 
-    info.GetReturnValue().Set(platform_v8_function_t::to_v8(module.function(name)));
+    info.GetReturnValue().Set(function_t::to_v8(module.get<function_view_t>(name)));
 }
 
 } // namespace
 
-platform_v8_module_t::platform_v8_module_t(Isolate * isolate,
-                                           const platform_module_configuration_t & configuration)
+module_t::module_t(Isolate * isolate, const platform_module_configuration_t & configuration)
   : internal_module_t(configuration.name)
   , isolate(isolate)
 {
+    start_gc_tracing(isolate);
+
     // Enter the isolate
     v8::Isolate::Scope isolate_scope(isolate);
     // Create a stack-allocated handle scope.
@@ -128,9 +152,9 @@ platform_v8_module_t::platform_v8_module_t(Isolate * isolate,
     }
 }
 
-platform_v8_module_t::~platform_v8_module_t() {}
+module_t::~module_t() {}
 
-void platform_v8_module_t::link(node_t & node)
+void module_t::link(node_t & node)
 {
     // Enter the isolate
     v8::Isolate::Scope isolate_scope(isolate);
@@ -188,7 +212,7 @@ void platform_v8_module_t::link(node_t & node)
     // Initialize module
 }
 
-object_ptr_t platform_v8_module_t::create_dynamic(const std::string_view & name, arg_pack_t args)
+object_ptr_t module_t::create_dynamic(const std::string_view & name, arg_pack_t args)
 {
     // Enter the isolate
     v8::Isolate::Scope isolate_scope(isolate);
@@ -199,21 +223,44 @@ object_ptr_t platform_v8_module_t::create_dynamic(const std::string_view & name,
     // Enter the context
     Context::Scope context_scope(context);
 
-    auto constructor = dynamic_pointer_cast<platform_v8_function_t>(function(name));
+    auto constructor = dynamic_pointer_cast<function_t>(get<function_view_t>(name));
 
-    return make_unique<platform_v8_object_t>(name.data(), constructor->constructor_call(move(args)),
-                                             *this);
+    if (!constructor) {
+        throw type_lookup_error_t("no type "s + name.data() + " in module " + get_name());
+    }
+
+    return make_unique<object_t>(name.data(), constructor->constructor_call(move(args)), *this);
 }
 
-void platform_v8_module_t::listen(const std::string_view & module_name,
-                                  std::function<void()> && handler)
+void module_t::listen(const std::string_view & module_name, std::function<void()> && handler)
 {
     std::ignore = module_name;
     std::ignore = handler;
-    throw not_implemented("platform_v8_module_t::listen");
+    throw not_implemented("module_t::listen");
 }
 
-function_ptr_t platform_v8_module_t::fetch_function(const std::string_view & name)
+function_ptr_t module_t::fetch_function(const std::string_view & name) const
+{
+    auto property_ptr = fetch(name);
+    if (auto function_ptr = std::dynamic_pointer_cast<function_view_t>(property_ptr)) {
+        return function_ptr;
+    }
+
+    throw function_lookup_error_t("function '"s + name.data() + "' was not found in module '" +
+                                  get_name());
+}
+field_ptr_t module_t::fetch_field(const std::string_view &) const
+{
+    auto property_ptr = fetch(name);
+    if (auto field_ptr = std::dynamic_pointer_cast<field_view_t>(property_ptr)) {
+        return field_ptr;
+    }
+
+    throw function_lookup_error_t("field '"s + name.data() + "' was not found in module '" +
+                                  get_name());
+}
+
+property_ptr_t module_t::fetch(const std::string_view & name) const
 {
     // Enter the isolate
     v8::Isolate::Scope isolate_scope(isolate);
@@ -227,16 +274,23 @@ function_ptr_t platform_v8_module_t::fetch_function(const std::string_view & nam
     auto global = context->Global();
     auto value  = global->Get(helpers::to_v8_str(name));
 
-    if (!value->IsFunction()) {
-        throw function_lookup_error_t("function '"s + name.data() + "' was not found in module '" +
-                                      get_name() +
-                                      "'; found instead: " + helpers::to_string(value));
+    if (value->IsFunction()) {
+        return make_shared<function_t>(name.data(), value.As<Function>(), *this);
     }
 
-    return make_shared<platform_v8_function_t>(name.data(), value.As<Function>(), *this);
+    if (value->IsObject()) {
+        return make_shared<object_t>(name.data(), value.As<Object>(), *this);
+    }
+
+    if (!value->IsUndefined()) {
+        return make_shared<field_t>(name.data(), value, *this);
+    }
+
+    throw lookup_error_t("property '"s + name.data() + "' was not found in module '" + get_name() +
+                         "'; found instead: " + helpers::to_string(value));
 }
 
-void platform_v8_module_t::unload()
+void module_t::unload()
 {
     base::unload();
 
@@ -249,7 +303,7 @@ void platform_v8_module_t::unload()
     }
 }
 
-void platform_v8_module_t::initiate_garbage_collection_for_testing() const
+void module_t::initiate_garbage_collection_for_testing() const
 {
     isolate->LowMemoryNotification();
     // using namespace chrono_literals;
@@ -259,20 +313,20 @@ void platform_v8_module_t::initiate_garbage_collection_for_testing() const
     // isolate->RequestGarbageCollectionForTesting(v8::Isolate::kFullGarbageCollection);
 }
 
-void platform_v8_module_t::initialize() const {}
+void module_t::initialize() const {}
 
-void platform_v8_module_t::expose_module(v8::Local<v8::Object> parent, v8::Local<v8::String> key,
-                                         native_module_t & module)
+void module_t::expose_module(v8::Local<v8::Object> parent, v8::Local<v8::String> key,
+                             native_module_t & module)
 {
     auto context = get_context();
 
     auto root = v8::Object::New(isolate);
 
     for (const auto & function_metadata : module.iterate_functions()) {
-        auto function = module.function(function_metadata.name);
+        auto function = module.get<function_view_t>(function_metadata.name);
         // FIXME: return value is probably useful
-        std::ignore = root->Set(context, helpers::to_v8(function->name),
-                                platform_v8_function_t::to_v8(function));
+        std::ignore =
+            root->Set(context, helpers::to_v8(function->name()), function_t::to_v8(function));
     }
 
     for (const auto & [class_id, class_metadata] : module.iterate_classes()) {
@@ -297,14 +351,25 @@ void platform_v8_module_t::expose_module(v8::Local<v8::Object> parent, v8::Local
                     External::New(isolate, const_cast<function_metadata_t *>(&method_metadata))));
         }
 
+        for (const auto & field_metadata : class_metadata.fields) {
+            prototype->SetAccessorProperty(
+                helpers::to_v8_str(field_metadata.name),
+                v8::FunctionTemplate::New(
+                    isolate, helpers::forward_exceptions<field_getter_callback>,
+                    External::New(isolate, const_cast<field_metadata_t *>(&field_metadata))),
+                v8::FunctionTemplate::New(
+                    isolate, helpers::forward_exceptions<field_setter_callback>,
+                    External::New(isolate, const_cast<field_metadata_t *>(&field_metadata))));
+        }
+
         root->Set(helpers::to_v8_str(name), tpl->GetFunction());
     }
 
     parent->Set(key, root);
 }
 
-void platform_v8_module_t::expose_module(v8::Local<v8::Object> parent, v8::Local<v8::String> key,
-                                         internal_module_t & module)
+void module_t::expose_module(v8::Local<v8::Object> parent, v8::Local<v8::String> key,
+                             internal_module_t & module)
 {
     auto [isolate, context] = helpers::current_env();
 
@@ -320,4 +385,4 @@ void platform_v8_module_t::expose_module(v8::Local<v8::Object> parent, v8::Local
     parent->Set(key, module_object);
 }
 
-} // namespace interop
+} // namespace interop::platform_v8

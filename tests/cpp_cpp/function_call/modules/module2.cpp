@@ -32,16 +32,18 @@ TEST_F(interop_test, call)
     EXPECT_THROW(interop::ctx->get("not exists"), interop::module_lookup_error_t);
     auto && module = interop::ctx->get("module1");
 
-    module.function("hello_world")->call(15, 4.5f, 7.0);
-    module.function("hello_world")->call(8, 2.5f, 100.8);
+    module.get<interop::function_view_t>("hello_world")->call(15, 4.5f, 7.0);
+    module.get<interop::function_view_t>("hello_world")->call(8, 2.5f, 100.8);
 
-    EXPECT_EQ(10, module.create("test", 10)->function("get")->call<int>());
-    EXPECT_EQ(18, module.create("test", 18.78)->function("get")->call<int>());
-    EXPECT_EQ(1.5, module.create("test", 0)->function("member2")->call<double>(1));
-    EXPECT_EQ(24, module.function("add")->call<int>(10, 14));
-    EXPECT_STREQ("say hello yourself!", module.function("say_hello")->call<const char *>());
-    EXPECT_EQ(8086, module.function("non_capturing_lambda")->call<int>(6));
-    EXPECT_EQ(560, module.function("capturing_lambda")->call<int>(8));
+    EXPECT_EQ(10, module.create("test", 10)->get<interop::function_view_t>("get")->call<int>());
+    EXPECT_EQ(18, module.create("test", 18.78)->get<interop::function_view_t>("get")->call<int>());
+    EXPECT_EQ(1.5,
+              module.create("test", 0)->get<interop::function_view_t>("member2")->call<double>(1));
+    EXPECT_EQ(24, module.get<interop::function_view_t>("add")->call<int>(10, 14));
+    EXPECT_STREQ("say hello yourself!",
+                 module.get<interop::function_view_t>("say_hello")->call<const char *>());
+    EXPECT_EQ(8086, module.get<interop::function_view_t>("non_capturing_lambda")->call<int>(6));
+    EXPECT_EQ(560, module.get<interop::function_view_t>("capturing_lambda")->call<int>(8));
 }
 
 TEST_F(interop_test, call_dynamic)
@@ -50,9 +52,9 @@ TEST_F(interop_test, call_dynamic)
 
     auto obj = module.create("test", 11);
 
-    EXPECT_EQ(11, obj->function("get")->call_dynamic());
-    EXPECT_EQ(2.5, obj->function("member3")->call_dynamic({2.0f, 0.5}));
-    EXPECT_EQ(2, module.function("add")->call_dynamic({1, 1}));
+    EXPECT_EQ(11, obj->get<interop::function_view_t>("get")->call_dynamic());
+    EXPECT_EQ(2.5, obj->get<interop::function_view_t>("member3")->call_dynamic({2.0f, 0.5}));
+    EXPECT_EQ(2, module.get<interop::function_view_t>("add")->call_dynamic({1, 1}));
 }
 
 TEST_F(interop_test, dynamic_call_implicit_conversions)
@@ -61,10 +63,10 @@ TEST_F(interop_test, dynamic_call_implicit_conversions)
 
     auto obj = module.create("test", 11);
 
-    EXPECT_EQ(11, obj->function("get")->call_dynamic());
-    EXPECT_EQ(2.5, obj->function("member3")->call_dynamic({2.0, 0.5}));
-    EXPECT_EQ(2.5, obj->function("member3")->call_dynamic({2, 0.5}));
-    EXPECT_EQ(3.0, obj->function("member3")->call_dynamic({2, 1}));
+    EXPECT_EQ(11, obj->get<interop::function_view_t>("get")->call_dynamic());
+    EXPECT_EQ(2.5, obj->get<interop::function_view_t>("member3")->call_dynamic({2.0, 0.5}));
+    EXPECT_EQ(2.5, obj->get<interop::function_view_t>("member3")->call_dynamic({2, 0.5}));
+    EXPECT_EQ(3.0, obj->get<interop::function_view_t>("member3")->call_dynamic({2, 1}));
 }
 
 TEST_F(interop_test, object_create_fail)
@@ -82,10 +84,10 @@ class test_view {
   public:
     explicit test_view(interop::object_ptr_t obj)
       : object(std::move(obj))
-      , member1{object->function("member1")}
-      , member2{object->function("member2")}
-      , member3{object->function("member3")}
-      , get{object->function("get")}
+      , member1{object->get<interop::function_view_t>("member1")}
+      , member2{object->get<interop::function_view_t>("member2")}
+      , member3{object->get<interop::function_view_t>("member3")}
+      , get{object->get<interop::function_view_t>("get")}
     {}
 
 #define _M(mem_name) interop::function_view_t::imitator_t<decltype(&test::mem_name)> mem_name

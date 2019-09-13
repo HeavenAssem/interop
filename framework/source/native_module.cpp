@@ -186,16 +186,19 @@ void native_module_t::listen(const std::string_view & module_name, std::function
     throw not_implemented("native_module_t::listen");
 }
 
-function_ptr_t native_module_t::fetch_function(const std::string_view & name)
+function_ptr_t native_module_t::fetch_function(const std::string_view & name) const
 {
-    auto it =
-        find_if(native->functions.begin(), native->functions.end(),
-                [&](const function_metadata_t & fn_metadata) { return name == fn_metadata.name; });
-    if (it == native->functions.end()) {
-        throw function_lookup_error_t("function with name \""s + name.data() +
-                                      "\" not found in module " + get_name());
+    if (auto function_metadata_ptr = internals::find_metadata_opt(native->functions, name)) {
+        return make_shared<native_function_t>(*function_metadata_ptr);
     }
 
-    return make_shared<native_function_t>(*it);
+    throw function_lookup_error_t("function with name \""s + name.data() +
+                                  "\" not found in module " + get_name());
 }
+
+field_ptr_t native_module_t::fetch_field(const std::string_view &) const
+{
+    throw not_implemented("module fields are not implemented yet");
+}
+
 } // namespace interop

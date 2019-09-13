@@ -25,15 +25,9 @@ module_id_t internal_module_t::get_id() const
     return next_class_id.module_id;
 }
 
-function_ptr_t internal_module_t::function(const string_view & name)
-{
-    return cache.get(name, bind(&internal_module_t::fetch_function, this, _1));
-}
-
 void internal_module_t::unload()
 {
     interop_logger(log, "unload module '" + get_name() + "'");
-
-    cache.clear();
+    base_t::unload();
 }
 } // namespace interop

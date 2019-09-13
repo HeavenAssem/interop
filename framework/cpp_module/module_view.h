@@ -17,7 +17,7 @@
 #include <functional>
 
 namespace interop {
-class module_view_t {
+class module_view_t: public internals::object_interface_t {
   protected:
     std::string name;
     internals::native_module_data_opt_t native;
@@ -67,9 +67,9 @@ class module_view_t {
         }
     }
 
-    virtual function_ptr_t function(const std::string_view & name)                              = 0;
     virtual object_ptr_t create_dynamic(const std::string_view & name, arg_pack_t)              = 0;
     virtual void listen(const std::string_view & module_name, std::function<void()> && handler) = 0;
     virtual ~module_view_t() = default;
 };
+
 } // namespace interop

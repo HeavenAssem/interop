@@ -5,6 +5,7 @@
 
 #include "declarations.h"
 #include "module_context.h"
+#include "node_metadata.hpp"
 
 #include <definitions.h>
 #include <lazy_sequence.h>
@@ -18,6 +19,8 @@ struct native_module_configuration_t;
 
 class node_t: public module_context_t {
     // static std::unordered_map<std::string, std::shared_ptr<native_module_t>> global_scope;
+
+    node_metadata_t metadata;
 
     std::string name;
     std::vector<module_ptr_t> modules;
@@ -99,6 +102,8 @@ class node_t: public module_context_t {
 
         throw error_t("no module with requested type and id");
     }
+
+    inline const node_metadata_t & get_metadata() const { return metadata; }
 
     void unload(bool forced = false);
     /** internal interface **/

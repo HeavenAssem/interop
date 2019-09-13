@@ -11,7 +11,7 @@ using namespace std;
 using namespace v8;
 using namespace interop::helpers;
 
-namespace interop {
+namespace interop::platform_v8 {
 namespace {
 /*-----------<< utility >>------------*/
 
@@ -48,21 +48,19 @@ void exposed_function_callback(const FunctionCallbackInfo<Value> & info)
 /*----------->> utility <<------------*/
 } // namespace
 
-platform_v8_function_t::platform_v8_function_t(std::string name, Local<Function> handle,
-                                               const platform_v8_module_t & module)
+function_t::function_t(std::string name, Local<Function> handle, const module_t & module)
   : platform_function_t(std::move(name))
   , handle(module.get_isolate(), handle)
   , module(module)
 {}
 
-platform_v8_function_t::platform_v8_function_t(std::string name, Local<Function> handle,
-                                               const platform_v8_object_t & object)
-  : platform_v8_function_t(std::move(name), handle, object.get_module())
+function_t::function_t(std::string name, Local<Function> handle, const object_t & object)
+  : function_t(std::move(name), handle, object.get_module())
 {
     this->object = &object;
 }
 
-val_t platform_v8_function_t::call_dynamic(arg_pack_t args) const
+val_t function_t::call_dynamic(arg_pack_t args) const
 {
     auto isolate = module.get_isolate();
 
@@ -81,7 +79,7 @@ val_t platform_v8_function_t::call_dynamic(arg_pack_t args) const
     return call_v8(recv, handle.Get(isolate), helpers::to_v8(std::move(args)));
 }
 
-Local<Object> platform_v8_function_t::constructor_call(arg_pack_t args) const
+Local<Object> function_t::constructor_call(arg_pack_t args) const
 {
     auto isolate = module.get_isolate();
 
@@ -99,7 +97,7 @@ Local<Object> platform_v8_function_t::constructor_call(arg_pack_t args) const
         call_v8_as_constructor(handle.Get(isolate), helpers::to_v8(std::move(args))));
 }
 
-v8::Local<v8::Object> platform_v8_function_t::to_v8(const function_ptr_t & function)
+v8::Local<v8::Function> function_t::to_v8(const function_ptr_t & function)
 {
     auto isolate = helpers::current_isolate();
 
@@ -107,4 +105,4 @@ v8::Local<v8::Object> platform_v8_function_t::to_v8(const function_ptr_t & funct
                          External::New(isolate, function.get()));
 }
 
-} // namespace interop
+} // namespace interop::platform_v8

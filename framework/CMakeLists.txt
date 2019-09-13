@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.4)
 
-file(GLOB_RECURSE HEADER_FILES include/*.h cpp_module/*.h)
+file(GLOB_RECURSE HEADER_FILES **/*.h **/*.hpp)
 AUX_SOURCE_DIRECTORY(source SOURCE_FILES)
 
 set(LIBRARIES os_abstraction jsoncpp boost_system boost_filesystem)

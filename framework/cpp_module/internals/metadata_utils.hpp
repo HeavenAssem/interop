@@ -10,17 +10,27 @@
 namespace interop {
 namespace internals {
 
-template <typename Metadata, typename Handler>
-auto & find_metadata(Metadata & metadata, std::string_view name, Handler && not_found)
+template <typename Metadata>
+auto * find_metadata_opt(Metadata & metadata, std::string_view name)
 {
     auto it = std::find_if(metadata.begin(), metadata.end(),
                            [&](auto & inner_metadata) { return name == inner_metadata.name; });
     if (it == metadata.end()) {
+        return decltype(&*it){nullptr};
+    }
+
+    return &*it;
+}
+
+template <typename Metadata, typename Handler>
+auto & find_metadata(Metadata & metadata, std::string_view name, Handler && not_found)
+{
+    if (auto ptr = find_metadata_opt(metadata, name)) {
+        return *ptr;
+    } else {
         not_found();
         interop_invariant_m(false, "not_found handler didn't throw");
     }
-
-    return *it;
 }
 
 template <typename... Args, typename Metadata, typename Handler>

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "function_metadata.h"
-#include "object_view.hpp"
+#include "property_view.hpp"
 
 #include "internals/strict_call_validator.h"
 
@@ -31,17 +31,19 @@ auto function_cast(void * pointer)
  * function_view_t use
  * function_ptr.
  */
-struct function_view_t {
-    const std::string name;
+struct function_view_t: public property_view_t {
+    const std::string name_;
     const internals::native_callable_data_opt_t native;
 
     function_view_t(std::string name, internals::native_callable_data_opt_t native = std::nullopt)
-      : name(std::move(name))
+      : name_(std::move(name))
       , native(std::move(native))
     {}
 
     function_view_t(const function_view_t &) = delete;
     function_view_t(function_view_t &&)      = delete;
+
+    inline const std::string & name() const override { return name_; }
 
     /**
      * @brief Fast, strict, native to native call with NO implicit type casting
@@ -54,7 +56,7 @@ struct function_view_t {
         /** check call signature and register check
          * in case if metadata changes (on function's module
          * reload / replace) */
-        static internals::strict_call_validator_t<R, Args...> checker_instance(name, native);
+        static internals::strict_call_validator_t<R, Args...> checker_instance(name_, native);
 
         return native ? native->context
                             ? details::function_cast<R, void *, Args...>(native->pointer)(

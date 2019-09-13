@@ -6,6 +6,8 @@
 
 #include "type_subsystem/type.h"
 
+#include "type_subsystem/type_id.hpp"
+
 namespace interop {
 
 struct type_metadata_t {
@@ -13,9 +15,6 @@ struct type_metadata_t {
     std::size_t size;
 };
 
-struct field_metadata_t: type_metadata_t {
-    std::string name;
-    void * getter;
-    void * setter;
-};
+[[maybe_unused]] const type_id_t id;
+
 } // namespace interop

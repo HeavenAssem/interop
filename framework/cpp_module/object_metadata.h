@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "field_metadata.hpp"
 #include "function_metadata.h"
 #include <memory>
 

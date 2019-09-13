@@ -1,6 +1,6 @@
 #pragma once
 
-namespace interop {
-class platform_v8_module_t;
-class platform_v8_object_t;
-} // namespace interop
+namespace interop::platform_v8 {
+class module_t;
+class object_t;
+} // namespace interop::platform_v8
